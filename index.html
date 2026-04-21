@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const SUPABASE_URL = 'https://krxtifzukbuqwaevsccq.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_poQvwASRPUkYqC8yGWgiIQ_cHa1R3yf';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyeHRpZnp1a2J1cXdhZXZzY2NxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjU4ODUsImV4cCI6MjA5MjM0MTg4NX0.oSxxwlHGFU_Y7b4MBAN9-7_T3AWqkMPbyMdEXaGNbSg';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     </script>
     <style>
@@ -3627,29 +3627,45 @@ async function handleRegister() {
     btn.disabled = true;
     btn.textContent = 'Creating Account...';
 
-    const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: { data: { name: name } }
-    });
+    try {
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: { data: { name: name } }
+        });
 
-    if (error) {
+        if (error) {
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+            if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+                document.getElementById('regEmailError').textContent = 'Account already exists. Please sign in.';
+                document.getElementById('regEmail').classList.add('error');
+                document.getElementById('regEmailError').style.display = 'block';
+            } else if (error.status === 429 || error.message.includes('rate limit')) {
+                showToast('error', 'Too Many Attempts', 'Please wait a moment and try again.');
+            } else {
+                showToast('error', 'Registration Failed', error.message);
+            }
+            return;
+        }
+
         btn.disabled = false;
         btn.textContent = 'Create Account';
-        if (error.message.includes('already registered')) {
-            document.getElementById('regEmailError').textContent = 'Account already exists. Please sign in.';
-            document.getElementById('regEmail').classList.add('error');
-            document.getElementById('regEmailError').style.display = 'block';
-        } else {
-            showToast('error', 'Registration Failed', error.message);
-        }
-        return;
-    }
 
-    btn.disabled = false;
-    btn.textContent = 'Create Account';
-    currentUser = data.user;
-    completeAuth(name, email);
+        // Handle email confirmation flow
+        if (data.user && !data.session) {
+            showToast('success', 'Check Your Email', 'We sent a confirmation link to ' + escapeHTML(email) + '. Please verify to continue.', 8000);
+            showLogin();
+            return;
+        }
+
+        currentUser = data.user;
+        completeAuth(name, email);
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        showToast('error', 'Connection Error', 'Could not connect to the server. Please check your internet and try again.');
+    }
 }
 
 async function handleLogin() {
@@ -3674,32 +3690,42 @@ async function handleLogin() {
     btn.disabled = true;
     btn.textContent = 'Signing In...';
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-    });
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
 
-    if (error) {
+        if (error) {
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+            if (error.message.includes('Email not confirmed')) {
+                showToast('error', 'Email Not Verified', 'Please check your inbox and confirm your email before signing in.', 6000);
+            } else if (error.status === 400 || error.message.includes('Invalid login')) {
+                document.getElementById('loginPasswordError').textContent = 'Invalid email or password.';
+                document.getElementById('loginPassword').classList.add('error');
+                document.getElementById('loginPasswordError').style.display = 'block';
+            } else if (error.status === 429 || error.message.includes('rate limit')) {
+                showToast('error', 'Too Many Attempts', 'Please wait a moment and try again.');
+            } else {
+                showToast('error', 'Login Failed', error.message);
+            }
+            return;
+        }
+
         btn.disabled = false;
         btn.textContent = 'Sign In';
-        if (error.message.includes('Invalid login')) {
-            document.getElementById('loginPasswordError').textContent = 'Invalid email or password.';
-            document.getElementById('loginPassword').classList.add('error');
-            document.getElementById('loginPasswordError').style.display = 'block';
-        } else {
-            showToast('error', 'Login Failed', error.message);
-        }
-        return;
+        currentUser = data.user;
+        const userName = data.user.user_metadata?.name || email.split('@')[0];
+        completeAuth(userName, email);
+
+        // Update last login (non-blocking)
+        supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', data.user.id);
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+        showToast('error', 'Connection Error', 'Could not connect to the server. Please check your internet and try again.');
     }
-
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
-    currentUser = data.user;
-    const userName = data.user.user_metadata?.name || email.split('@')[0];
-    completeAuth(userName, email);
-
-    // Update last login
-    await supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', data.user.id);
 }
 
 function completeAuth(name, email) {
@@ -3837,13 +3863,25 @@ async function loadLastRecord() {
     showToast('info', 'Data Loaded', 'Your last health record has been restored.', 3000);
 }
 
+// Enter key support for auth forms
+document.getElementById('regPassword')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleRegister();
+});
+document.getElementById('loginPassword')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+});
+
 // Check auth on page load
 (async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session && session.user) {
-        currentUser = session.user;
-        const userName = session.user.user_metadata?.name || session.user.email.split('@')[0];
-        completeAuth(userName, session.user.email);
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+            currentUser = session.user;
+            const userName = session.user.user_metadata?.name || session.user.email.split('@')[0];
+            completeAuth(userName, session.user.email);
+        }
+    } catch (err) {
+        console.error('Auth check failed:', err);
     }
 })();
 </script>
