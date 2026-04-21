@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthAdvisor AI - Architecture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg:#0f172a; --card:#1e293b; --border:#334155; --text:#f1f5f9; --muted:#94a3b8; --blue:#38bdf8; --green:#34d399; --purple:#a78bfa; --pink:#f472b6; --amber:#fbbf24; --red:#f87171; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); line-height:1.5; padding:40px 20px; }
+        .container { max-width:900px; margin:0 auto; }
+
+        /* Header */
+        .header { text-align:center; margin-bottom:48px; }
+        .badge { display:inline-block; background:rgba(14,165,233,0.15); color:var(--blue); padding:4px 14px; border-radius:16px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:14px; border:1px solid rgba(14,165,233,0.3); }
+        h1 { font-size:36px; font-weight:800; background:linear-gradient(135deg,#0ea5e9,#10b981); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:6px; }
+        .header p { color:var(--muted); font-size:14px; }
+        .meta { display:flex; justify-content:center; gap:24px; margin-top:16px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+
+        /* Metrics */
+        .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:48px; }
+        .metric { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
+        .metric-val { font-size:28px; font-weight:800; background:linear-gradient(135deg,#0ea5e9,#10b981); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .metric-lbl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-top:2px; }
+
+        /* Section */
+        h2 { font-size:20px; font-weight:700; margin-bottom:16px; }
+
+        /* Tech Stack */
+        .tech { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:48px; }
+        .tech-item { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
+        .tech-item .icon { font-size:20px; margin-bottom:6px; }
+        .tech-item h3 { font-size:13px; font-weight:600; margin-bottom:3px; }
+        .tech-item p { font-size:11px; color:var(--muted); }
+
+        /* Architecture Layers */
+        .arch { margin-bottom:48px; }
+        .layer { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+        .layer-label { width:80px; text-align:right; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); flex-shrink:0; }
+        .layer-boxes { display:flex; gap:8px; flex:1; flex-wrap:wrap; }
+        .box { padding:10px 14px; border-radius:8px; font-size:12px; font-weight:600; flex:1; min-width:100px; text-align:center; border:1px solid transparent; }
+        .box small { display:block; font-weight:400; font-size:10px; opacity:0.7; margin-top:2px; }
+        .box.b { background:rgba(14,165,233,0.1); color:var(--blue); border-color:rgba(14,165,233,0.25); }
+        .box.g { background:rgba(16,185,129,0.1); color:var(--green); border-color:rgba(16,185,129,0.25); }
+        .box.p { background:rgba(139,92,246,0.1); color:var(--purple); border-color:rgba(139,92,246,0.25); }
+        .box.pk { background:rgba(236,72,153,0.1); color:var(--pink); border-color:rgba(236,72,153,0.25); }
+        .box.a { background:rgba(245,158,11,0.1); color:var(--amber); border-color:rgba(245,158,11,0.25); }
+        .box.r { background:rgba(239,68,68,0.1); color:var(--red); border-color:rgba(239,68,68,0.25); }
+        .arrow { text-align:center; color:var(--border); font-size:16px; padding-left:92px; margin:2px 0; }
+
+        /* User Flow */
+        .flow { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:48px; }
+        .flow-step { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; position:relative; }
+        .flow-step .num { display:inline-block; width:24px; height:24px; border-radius:50%; font-size:12px; font-weight:700; text-align:center; line-height:24px; margin-bottom:8px; }
+        .flow-step h3 { font-size:12px; font-weight:600; margin-bottom:4px; }
+        .flow-step p { font-size:11px; color:var(--muted); }
+
+        /* DB Tables */
+        .db { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:48px; }
+        .db-table { background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+        .db-head { padding:10px 14px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+        .db-row { display:flex; justify-content:space-between; padding:5px 14px; font-size:11px; border-top:1px solid rgba(51,65,85,0.5); }
+        .db-type { color:var(--muted); }
+
+        /* Security */
+        .sec-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-bottom:48px; }
+        .sec-item { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; }
+        .sec-item h4 { font-size:13px; font-weight:600; margin-bottom:4px; }
+        .sec-item p { font-size:11px; color:var(--muted); }
+
+        /* Footer */
+        .footer { text-align:center; padding:24px 0; border-top:1px solid var(--border); color:var(--muted); font-size:11px; }
+
+        @media(max-width:500px) { h1{font-size:26px;} .layer-label{width:60px;font-size:9px;} }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="badge">Architecture</div>
+        <h1>HealthAdvisor AI</h1>
+        <p>AI-powered health consultation with diet, exercise & Ayurvedic recommendations</p>
+        <div class="meta">
+            <span>By Sameer Kumar</span>
+            <span>April 2026</span>
+            <span>Single-File App</span>
+            <span>Vercel + Supabase</span>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics">
+        <div class="metric"><div class="metric-val">3,800+</div><div class="metric-lbl">Lines of Code</div></div>
+        <div class="metric"><div class="metric-val">1</div><div class="metric-lbl">HTML File</div></div>
+        <div class="metric"><div class="metric-val">50+</div><div class="metric-lbl">Functions</div></div>
+        <div class="metric"><div class="metric-val">4</div><div class="metric-lbl">DB Tables</div></div>
+        <div class="metric"><div class="metric-val">4</div><div class="metric-lbl">Algorithms</div></div>
+        <div class="metric"><div class="metric-val">50+</div><div class="metric-lbl">AI Topics</div></div>
+    </div>
+
+    <!-- Tech Stack -->
+    <h2>Tech Stack</h2>
+    <div class="tech">
+        <div class="tech-item"><div class="icon">{ }</div><h3>HTML/CSS/JS</h3><p>Vanilla stack, no frameworks</p></div>
+        <div class="tech-item"><div class="icon" style="color:#3ecf8e;">S</div><h3>Supabase</h3><p>Auth + PostgreSQL + RLS</p></div>
+        <div class="tech-item"><div class="icon" style="color:#8b5cf6;">V</div><h3>Vercel</h3><p>Hosting & auto-deploy</p></div>
+        <div class="tech-item"><div class="icon" style="color:#f472b6;">GH</div><h3>GitHub</h3><p>Source control & CI/CD</p></div>
+        <div class="tech-item"><div class="icon" style="color:#fbbf24;">AI</div><h3>Chat Agent</h3><p>Regex NLP, 50+ topics</p></div>
+        <div class="tech-item"><div class="icon" style="color:#38bdf8;">G</div><h3>Google Fonts</h3><p>Inter typeface</p></div>
+    </div>
+
+    <!-- System Architecture -->
+    <h2>System Architecture</h2>
+    <div class="arch">
+        <div class="layer"><div class="layer-label">User</div><div class="layer-boxes"><div class="box b">Browser</div></div></div>
+        <div class="arrow">&#8595;</div>
+        <div class="layer"><div class="layer-label">Frontend</div><div class="layer-boxes"><div class="box g">HTML<small>Wizard + Results</small></div><div class="box g">CSS<small>Grid + Animations</small></div><div class="box g">JavaScript<small>50+ Functions</small></div></div></div>
+        <div class="arrow">&#8595;</div>
+        <div class="layer"><div class="layer-label">Logic</div><div class="layer-boxes"><div class="box p">BMI</div><div class="box p">BMR/TDEE</div><div class="box p">Health Score</div><div class="box p">Dosha</div></div></div>
+        <div class="arrow">&#8595;</div>
+        <div class="layer"><div class="layer-label">AI Layer</div><div class="layer-boxes"><div class="box pk">Chat Agent</div><div class="box pk">Meal Planner</div><div class="box pk">Recommendations</div></div></div>
+        <div class="arrow">&#8595;</div>
+        <div class="layer"><div class="layer-label">Backend</div><div class="layer-boxes"><div class="box a">Supabase Auth<small>JWT Sessions</small></div><div class="box a">PostgreSQL<small>4 Tables + RLS</small></div></div></div>
+        <div class="arrow">&#8595;</div>
+        <div class="layer"><div class="layer-label">Hosting</div><div class="layer-boxes"><div class="box r">GitHub</div><div class="box r">Vercel CDN</div><div class="box r">Supabase Cloud</div></div></div>
+    </div>
+
+    <!-- User Flow -->
+    <h2>User Flow</h2>
+    <div class="flow">
+        <div class="flow-step"><div class="num" style="background:rgba(14,165,233,0.15);color:var(--blue);">1</div><h3>Auth</h3><p>Register or login with email & password</p></div>
+        <div class="flow-step"><div class="num" style="background:rgba(16,185,129,0.15);color:var(--green);">2</div><h3>Auto-Load</h3><p>Pre-fill form with last saved record</p></div>
+        <div class="flow-step"><div class="num" style="background:rgba(139,92,246,0.15);color:var(--purple);">3</div><h3>Personal Info</h3><p>Name, age, gender, ethnicity</p></div>
+        <div class="flow-step"><div class="num" style="background:rgba(236,72,153,0.15);color:var(--pink);">4</div><h3>Measurements</h3><p>Height, weight, waist, blood group</p></div>
+        <div class="flow-step"><div class="num" style="background:rgba(245,158,11,0.15);color:var(--amber);">5</div><h3>Medical</h3><p>Conditions, meds, allergies</p></div>
+        <div class="flow-step"><div class="num" style="background:rgba(239,68,68,0.15);color:var(--red);">6</div><h3>Lifestyle</h3><p>Activity, sleep, diet, habits, goals</p></div>
+        <div class="flow-step"><div class="num" style="background:linear-gradient(135deg,#0ea5e9,#10b981);color:#fff;">7</div><h3>AI Report</h3><p>Score, action plan, goals, Ayurveda</p></div>
+    </div>
+
+    <!-- Database -->
+    <h2>Database Schema</h2>
+    <div class="db">
+        <div class="db-table">
+            <div class="db-head" style="background:rgba(14,165,233,0.06);color:var(--blue);">&#128100; profiles</div>
+            <div class="db-row"><span>id</span><span class="db-type">UUID PK</span></div>
+            <div class="db-row"><span>name, email</span><span class="db-type">TEXT</span></div>
+            <div class="db-row"><span>last_login</span><span class="db-type">TIMESTAMPTZ</span></div>
+            <div class="db-row"><span>is_active, deleted_at</span><span class="db-type">BOOL, TSTMPTZ</span></div>
+        </div>
+        <div class="db-table">
+            <div class="db-head" style="background:rgba(16,185,129,0.06);color:var(--green);">&#128202; health_records</div>
+            <div class="db-row"><span>id, user_id</span><span class="db-type">UUID PK, FK</span></div>
+            <div class="db-row"><span>name, age, gender</span><span class="db-type">Personal</span></div>
+            <div class="db-row"><span>height, weight, bmi</span><span class="db-type">Metrics</span></div>
+            <div class="db-row"><span>conditions[], goals[]</span><span class="db-type">ARRAY</span></div>
+            <div class="db-row"><span>health_score, bmr, tdee</span><span class="db-type">Calculated</span></div>
+            <div class="db-row"><span>dosha_vata/pitta/kapha</span><span class="db-type">Ayurveda</span></div>
+        </div>
+        <div class="db-table">
+            <div class="db-head" style="background:rgba(139,92,246,0.06);color:var(--purple);">&#128196; reports</div>
+            <div class="db-row"><span>id, user_id, record_id</span><span class="db-type">UUID PK, FK</span></div>
+            <div class="db-row"><span>health_score, bmi</span><span class="db-type">Summary</span></div>
+            <div class="db-row"><span>risk_level</span><span class="db-type">low-critical</span></div>
+            <div class="db-row"><span>top_priorities[]</span><span class="db-type">ARRAY</span></div>
+            <div class="db-row"><span>blood_tests[], dosha</span><span class="db-type">ARRAY, TEXT</span></div>
+        </div>
+        <div class="db-table">
+            <div class="db-head" style="background:rgba(245,158,11,0.06);color:var(--amber);">&#128220; audit_log</div>
+            <div class="db-row"><span>id, user_id</span><span class="db-type">UUID PK, FK</span></div>
+            <div class="db-row"><span>action, table_name</span><span class="db-type">TEXT</span></div>
+            <div class="db-row"><span>details</span><span class="db-type">JSONB</span></div>
+            <div class="db-row"><span>created_at</span><span class="db-type">TIMESTAMPTZ</span></div>
+        </div>
+    </div>
+
+    <!-- Security -->
+    <h2>Security</h2>
+    <div class="sec-grid">
+        <div class="sec-item"><h4>&#128274; Supabase Auth</h4><p>Email/password with bcrypt. JWT sessions. No passwords in app.</p></div>
+        <div class="sec-item"><h4>&#128737; Row Level Security</h4><p>Users can only access their own data. Enforced at DB level.</p></div>
+        <div class="sec-item"><h4>&#128737; XSS Prevention</h4><p>All inputs sanitized via escapeHTML() before rendering.</p></div>
+        <div class="sec-item"><h4>&#9989; 16 Constraints</h4><p>CHECK constraints on all fields. Range + enum validation.</p></div>
+        <div class="sec-item"><h4>&#128221; Soft Delete</h4><p>Records never permanently deleted. Audit trail on all actions.</p></div>
+        <div class="sec-item"><h4>&#128272; Publishable Key Only</h4><p>No secret keys exposed in frontend code.</p></div>
+    </div>
+
+    <!-- Deploy Pipeline -->
+    <h2>Deploy Pipeline</h2>
+    <div class="arch" style="margin-bottom:32px;">
+        <div class="layer"><div class="layer-label">Code</div><div class="layer-boxes"><div class="box g">VS Code + Claude Code</div></div></div>
+        <div class="arrow">&#8595; git push</div>
+        <div class="layer"><div class="layer-label">Source</div><div class="layer-boxes"><div class="box p">GitHub Repo</div></div></div>
+        <div class="arrow">&#8595; auto-deploy</div>
+        <div class="layer"><div class="layer-label">Live</div><div class="layer-boxes"><div class="box b">Vercel CDN</div><div class="box a">Supabase Cloud</div></div></div>
+    </div>
+
+    <div class="footer">HealthAdvisor AI &mdash; Built by Sameer Kumar with Claude Code &mdash; April 2026</div>
+</div>
+</body>
+</html>
