@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HealthAdvisor AI - Your Personal Health Consultant v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>emailjs.init('AJxcT5jVaJmqw_3U5');</script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -3657,7 +3659,7 @@ function handleRegister() {
     pendingAuthName = name;
     isNewUser = true;
     authOTPCode = generateOTP();
-    showToast('info', 'Verification Code', 'Your OTP code is: ' + authOTPCode, 8000);
+    sendOTPEmail(email, name, authOTPCode);
     showOTP(email);
 }
 
@@ -3680,7 +3682,7 @@ function handleLogin() {
     pendingAuthName = users[email.toLowerCase()].name;
     isNewUser = false;
     authOTPCode = generateOTP();
-    showToast('info', 'Verification Code', 'Your OTP code is: ' + authOTPCode, 8000);
+    sendOTPEmail(email, pendingAuthName, authOTPCode);
     showOTP(email);
 }
 
@@ -3714,9 +3716,23 @@ function startOTPTimer() {
     }, 1000);
 }
 
+function sendOTPEmail(toEmail, toName, otp) {
+    showToast('info', 'Sending Code', 'Sending verification code to ' + escapeHTML(toEmail) + '...', 4000);
+    emailjs.send('service_healthadvisor', 'template_otp', {
+        to_email: toEmail,
+        to_name: toName,
+        otp_code: otp
+    }).then(function() {
+        showToast('success', 'Code Sent!', 'Check your email for the 4-digit code.', 5000);
+    }).catch(function(err) {
+        console.error('EmailJS error:', err);
+        showToast('warning', 'Email Failed', 'Could not send email. Your code is: ' + otp, 10000);
+    });
+}
+
 function resendOTP() {
     authOTPCode = generateOTP();
-    showToast('info', 'New Code Sent', 'Your new OTP code is: ' + authOTPCode, 8000);
+    sendOTPEmail(pendingAuthEmail, pendingAuthName, authOTPCode);
     startOTPTimer();
     const inputs = document.querySelectorAll('#otpInputs input');
     inputs.forEach(inp => inp.value = '');
