@@ -1,0 +1,3307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthAdvisor AI - Your Personal Health Consultant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f0f9ff;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --gradient: linear-gradient(135deg, #0ea5e9, #10b981);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: var(--gradient);
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3);
+        }
+        header h1 { font-size: 1.8rem; font-weight: 700; }
+        header h1 span { font-weight: 300; opacity: 0.9; }
+        header p { opacity: 0.85; font-size: 0.95rem; margin-top: 0.3rem; }
+
+        /* Main Layout */
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Progress Steps */
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: white;
+            color: var(--text-muted);
+            border: 2px solid var(--border);
+            transition: all 0.3s;
+        }
+        .step.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .step.done {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            cursor: pointer;
+        }
+        .step.done:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+        .step:not(.active):not(.done) {
+            cursor: not-allowed;
+        }
+        .step-num {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .step:not(.active):not(.done) .step-num {
+            background: var(--border);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title .icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            outline: none;
+            background: #f8fafc;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            background: white;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        /* Checkbox Group */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.6rem;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0.8rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .checkbox-item:hover { border-color: var(--primary); background: #f0f9ff; }
+        .checkbox-item input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 18px; height: 18px;
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4); }
+        .btn-secondary {
+            background: white;
+            color: var(--text-muted);
+            border: 2px solid var(--border);
+        }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Section visibility */
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+        /* Results Page */
+        .result-header {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        .result-header.healthy { background: linear-gradient(135deg, #10b981, #059669); }
+        .result-header.moderate { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .result-header.attention { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .bmi-display {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .bmi-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+        .bmi-bar-container {
+            margin: 1.5rem auto;
+            max-width: 400px;
+        }
+        .bmi-bar {
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(to right, #3b82f6, #10b981, #f59e0b, #ef4444);
+            position: relative;
+        }
+        .bmi-marker {
+            position: absolute;
+            top: -4px;
+            width: 20px; height: 20px;
+            background: white;
+            border: 3px solid #0f172a;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            transition: left 0.8s ease;
+        }
+        .bmi-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            margin-top: 0.4rem;
+            opacity: 0.8;
+        }
+
+        /* Recommendation Cards */
+        .rec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .rec-card {
+            padding: 1.2rem;
+            border-radius: 14px;
+            border-left: none;
+            border-top: 4px solid;
+            background: white;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .rec-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .rec-card.expanded { grid-column: 1 / -1; }
+        .rec-card .rec-details { display: none; }
+        .rec-card.expanded .rec-details { display: block; animation: fadeSlide 0.3s ease; }
+        .rec-card .rec-toggle {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+        .rec-card.expanded .rec-toggle { color: var(--text-muted); }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+
+        .rec-card .priority-badge {
+            position: absolute;
+            top: -12px;
+            right: 16px;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .priority-badge.p1 { background: #ef4444; }
+        .priority-badge.p2 { background: #f59e0b; }
+        .priority-badge.p3 { background: #0ea5e9; }
+        .priority-badge.p4 { background: #8b5cf6; }
+        .priority-badge.p5 { background: #64748b; }
+
+        .rec-card .urgency-tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+        .urgency-tag.critical { background: #fef2f2; color: #dc2626; }
+        .urgency-tag.high { background: #fffbeb; color: #d97706; }
+        .urgency-tag.medium { background: #f0f9ff; color: #0284c7; }
+        .urgency-tag.low { background: #f0fdf4; color: #16a34a; }
+
+        .rec-card.diet { border-color: #10b981; background: #f0fdf4; }
+        .rec-card.exercise { border-color: #0ea5e9; background: #f0f9ff; }
+        .rec-card.lifestyle { border-color: #8b5cf6; background: #f5f3ff; }
+        .rec-card.warning { border-color: #ef4444; background: #fef2f2; }
+        .rec-card.medical { border-color: #f59e0b; background: #fffbeb; }
+        .rec-card.ayurveda { border-color: #b45309; background: #fef9ee; }
+
+        .rec-card.full-width { grid-column: 1 / -1; }
+
+        @media (max-width: 640px) {
+            .rec-grid { grid-template-columns: 1fr; }
+        }
+
+        /* === RESULTS TAB NAVIGATION === */
+        .result-tabs {
+            display: flex;
+            gap: 0;
+            background: white;
+            border-radius: 14px;
+            padding: 5px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        .result-tab {
+            flex: 1;
+            padding: 0.7rem 0.5rem;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .result-tab:hover { color: var(--primary); background: #f0f9ff; }
+        .result-tab.active { background: var(--gradient); color: white; box-shadow: 0 2px 10px rgba(14,165,233,0.3); }
+        .result-tab .tab-icon { display: block; font-size: 1.2rem; margin-bottom: 0.15rem; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+
+        /* === HEALTH SCORE RING === */
+        .score-section {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .score-ring-wrap {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            flex-shrink: 0;
+        }
+        .score-ring-wrap svg { transform: rotate(-90deg); }
+        .score-ring-bg { fill: none; stroke: #e2e8f0; stroke-width: 12; }
+        .score-ring-fill { fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1.5s ease; }
+        .score-ring-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .score-ring-text .score-num { font-size: 2.5rem; font-weight: 800; line-height: 1; }
+        .score-ring-text .score-lbl { font-size: 0.75rem; color: var(--text-muted); }
+        .score-breakdown { flex: 1; min-width: 250px; }
+        .score-bar-item { margin-bottom: 0.8rem; }
+        .score-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .score-bar-track { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+        .score-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; width: 0; }
+
+        /* === ANIMATED BMI GAUGE === */
+        .bmi-gauge-wrap {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .bmi-gauge {
+            position: relative;
+            width: 220px;
+            height: 130px;
+            overflow: hidden;
+        }
+        .bmi-gauge svg { width: 220px; height: 130px; }
+        .gauge-needle {
+            transform-origin: 110px 110px;
+            transition: transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bmi-gauge-value {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .bmi-gauge-value .gv-num { font-size: 1.8rem; font-weight: 800; }
+        .bmi-gauge-value .gv-label { font-size: 0.75rem; color: var(--text-muted); }
+        .bmi-info-cards { flex: 1; min-width: 250px; }
+        .bmi-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+        .bmi-info-item.highlight { background: #dbeafe; border-color: var(--primary); font-weight: 600; }
+        .bmi-info-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .bmi-info-text { font-size: 0.82rem; }
+
+        /* === STAT CARDS INTERACTIVE === */
+        .stat-card {
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            border-color: var(--primary);
+        }
+        .stat-card .stat-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+        .stat-card .stat-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: white;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            width: 200px;
+            text-align: left;
+            line-height: 1.4;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .stat-card .stat-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #0f172a;
+        }
+        .stat-card:hover .stat-tooltip { display: block; animation: fadeIn 0.2s ease; }
+
+        /* === QUICK SUMMARY PILLS === */
+        .quick-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .summary-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            background: white;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .summary-pill .pill-icon {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .summary-pill .pill-text { font-size: 0.78rem; color: var(--text-muted); }
+        .summary-pill .pill-text strong { display: block; font-size: 0.9rem; color: var(--text); margin-bottom: 0.1rem; }
+        .pill-good .pill-icon { background: #dcfce7; }
+        .pill-warn .pill-icon { background: #fef3c7; }
+        .pill-bad .pill-icon { background: #fef2f2; }
+
+        @media (max-width: 640px) {
+            .score-section, .bmi-gauge-wrap { flex-direction: column; align-items: center; }
+            .result-tab { font-size: 0.7rem; padding: 0.5rem 0.3rem; }
+            .result-tab .tab-icon { font-size: 1rem; }
+            .quick-summary { grid-template-columns: 1fr; }
+        }
+
+        /* === TOAST NOTIFICATIONS === */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            pointer-events: none;
+        }
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+            min-width: 300px;
+            max-width: 420px;
+            pointer-events: auto;
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 4px solid;
+            position: relative;
+            overflow: hidden;
+        }
+        .toast.toast-out {
+            animation: toastOut 0.3s ease forwards;
+        }
+        .toast.error { border-color: #ef4444; }
+        .toast.success { border-color: #10b981; }
+        .toast.warning { border-color: #f59e0b; }
+        .toast.info { border-color: #0ea5e9; }
+
+        .toast-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .toast.error .toast-icon { background: #fef2f2; }
+        .toast.success .toast-icon { background: #f0fdf4; }
+        .toast.warning .toast-icon { background: #fffbeb; }
+        .toast.info .toast-icon { background: #f0f9ff; }
+
+        .toast-body { flex: 1; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .toast.error .toast-title { color: #dc2626; }
+        .toast.success .toast-title { color: #16a34a; }
+        .toast.warning .toast-title { color: #d97706; }
+        .toast.info .toast-title { color: #0284c7; }
+        .toast-msg { font-size: 0.8rem; color: var(--text-muted); line-height: 1.3; }
+
+        .toast-close {
+            background: none; border: none;
+            font-size: 1.2rem; color: #94a3b8;
+            cursor: pointer; padding: 0 0.2rem;
+            flex-shrink: 0;
+        }
+        .toast-close:hover { color: #475569; }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 3px;
+            border-radius: 0 0 0 12px;
+            animation: toastProgress 3.5s linear forwards;
+        }
+        .toast.error .toast-progress { background: #ef4444; }
+        .toast.success .toast-progress { background: #10b981; }
+        .toast.warning .toast-progress { background: #f59e0b; }
+        .toast.info .toast-progress { background: #0ea5e9; }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100px) scale(0.9); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0) scale(1); }
+            to { opacity: 0; transform: translateX(100px) scale(0.8); }
+        }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        @media (max-width: 640px) {
+            .toast-container { right: 10px; left: 10px; }
+            .toast { min-width: auto; }
+        }
+
+        .dosha-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .dosha-card {
+            text-align: center;
+            padding: 1.2rem 1rem;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+        }
+        .dosha-card.active-dosha {
+            border-color: #b45309;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            box-shadow: 0 4px 12px rgba(180, 83, 9, 0.15);
+        }
+        .dosha-card .dosha-name { font-size: 1.1rem; font-weight: 700; }
+        .dosha-card .dosha-element { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+        .dosha-card .dosha-icon { font-size: 2rem; margin-bottom: 0.3rem; }
+        .dosha-card .dosha-pct { font-size: 1.3rem; font-weight: 700; color: #b45309; margin-top: 0.3rem; }
+
+        @media (max-width: 640px) {
+            .dosha-grid { grid-template-columns: 1fr; }
+        }
+
+        .rec-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .rec-card p, .rec-card li {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .rec-card ul { padding-left: 1.2rem; margin-top: 0.3rem; }
+
+        /* Meal Plan Table */
+        .meal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        .meal-table th {
+            background: var(--primary);
+            color: white;
+            padding: 0.8rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        .meal-table th:first-child { border-radius: 8px 0 0 0; }
+        .meal-table th:last-child { border-radius: 0 8px 0 0; }
+        .meal-table td {
+            padding: 0.7rem 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .meal-table tr:nth-child(even) td { background: #f8fafc; }
+
+        /* Vital Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+        }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+        /* Print */
+        .btn-print { background: #f8fafc; color: var(--text); border: 2px solid var(--border); }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 0.8rem;
+            color: #92400e;
+            margin-top: 1.5rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .steps { flex-wrap: wrap; }
+            .step span { display: none; }
+            .btn-row { flex-direction: column; }
+            .container { padding: 0 1rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+        /* === HEALTH AGENT CHAT === */
+        .agent-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(14,165,233,0.4);
+            z-index: 1000;
+            transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .agent-fab:hover { transform: scale(1.1); box-shadow: 0 8px 30px rgba(14,165,233,0.5); }
+        .agent-fab .fab-badge {
+            position: absolute;
+            top: -2px; right: -2px;
+            width: 18px; height: 18px;
+            background: #ef4444;
+            border-radius: 50%;
+            font-size: 0.6rem;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            border: 2px solid white;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+
+        .agent-window {
+            position: fixed;
+            bottom: 96px;
+            right: 24px;
+            width: 400px;
+            height: 560px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.15);
+            z-index: 1001;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            animation: chatOpen 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .agent-window.open { display: flex; }
+        @keyframes chatOpen {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: none; }
+        }
+
+        .agent-header {
+            background: var(--gradient);
+            color: white;
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .agent-avatar {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .agent-header-info { flex: 1; }
+        .agent-header-info h3 { font-size: 1rem; font-weight: 700; }
+        .agent-header-info p { font-size: 0.7rem; opacity: 0.8; }
+        .agent-header .agent-close {
+            background: rgba(255,255,255,0.15);
+            border: none; color: white;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .agent-header .agent-close:hover { background: rgba(255,255,255,0.3); }
+
+        .agent-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            background: #f8fafc;
+        }
+
+        .msg {
+            max-width: 85%;
+            padding: 0.7rem 1rem;
+            border-radius: 14px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            animation: msgIn 0.3s ease;
+        }
+        @keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+        .msg.bot {
+            background: white;
+            border: 1px solid #e2e8f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .msg.user {
+            background: var(--gradient);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .msg.bot strong { color: var(--primary); }
+
+        .msg-time {
+            font-size: 0.6rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+        .msg.user .msg-time { color: rgba(255,255,255,0.7); text-align: right; }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 0.7rem 1rem;
+            align-self: flex-start;
+        }
+        .typing-indicator span {
+            width: 8px; height: 8px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0.3rem 0;
+        }
+        .quick-reply {
+            padding: 0.35rem 0.7rem;
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            font-size: 0.72rem;
+            color: var(--primary);
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .quick-reply:hover { background: var(--primary); color: white; }
+
+        .agent-input-area {
+            padding: 0.8rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+        }
+        .agent-input-area input {
+            flex: 1;
+            padding: 0.65rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            font-size: 0.85rem;
+            outline: none;
+            font-family: inherit;
+        }
+        .agent-input-area input:focus { border-color: var(--primary); }
+        .agent-send {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .agent-send:hover { transform: scale(1.05); }
+
+        @media (max-width: 500px) {
+            .agent-window {
+                width: calc(100% - 20px);
+                height: calc(100% - 120px);
+                right: 10px;
+                bottom: 90px;
+                border-radius: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+    <header>
+        <h1>HealthAdvisor <span>AI</span></h1>
+        <p>Your AI-Powered Personal Health Consultant</p>
+    </header>
+
+    <div class="container">
+        <!-- Progress Steps -->
+        <div class="steps">
+            <div class="step active" id="step1" onclick="navigateToStep(1)"><div class="step-num">1</div><span>Personal Info</span></div>
+            <div class="step" id="step2" onclick="navigateToStep(2)"><div class="step-num">2</div><span>Body Metrics</span></div>
+            <div class="step" id="step3" onclick="navigateToStep(3)"><div class="step-num">3</div><span>Medical History</span></div>
+            <div class="step" id="step4" onclick="navigateToStep(4)"><div class="step-num">4</div><span>Lifestyle</span></div>
+            <div class="step" id="step5" onclick="navigateToStep(5)"><div class="step-num">5</div><span>Results</span></div>
+        </div>
+
+        <!-- Section 1: Personal Details -->
+        <div class="section active" id="section1">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon" style="background:#e0f2fe;color:#0ea5e9;">&#128100;</div>
+                    Personal Information
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Age *</label>
+                        <input type="number" id="age" placeholder="e.g. 28" min="1" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Gender *</label>
+                        <select id="gender" onchange="document.getElementById('pregnancyGroup').style.display = this.value === 'female' ? 'flex' : 'none'; if(this.value !== 'female') document.getElementById('pregnancy').value = 'none';">
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="you@example.com">
+                    </div>
+                    <div class="form-group" id="pregnancyGroup" style="display:none;">
+                        <label>Pregnancy / Breastfeeding</label>
+                        <select id="pregnancy">
+                            <option value="none">Not applicable</option>
+                            <option value="pregnant">Currently Pregnant</option>
+                            <option value="breastfeeding">Breastfeeding</option>
+                            <option value="ttc">Trying to Conceive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <div></div>
+                    <button class="btn btn-primary" onclick="goToStep(2)">Next &rarr;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Body Metrics -->
+        <div class="section" id="section2">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon" style="background:#dcfce7;color:#10b981;">&#9878;</div>
+                    Body Metrics
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Height (cm) *</label>
+                        <input type="number" id="height" placeholder="e.g. 170" min="50" max="250">
+                    </div>
+                    <div class="form-group">
+                        <label>Weight (kg) *</label>
+                        <input type="number" id="weight" placeholder="e.g. 70" min="10" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label>Waist Circumference (cm)</label>
+                        <input type="number" id="waist" placeholder="Optional" min="30" max="200">
+                    </div>
+                    <div class="form-group">
+                        <label>Blood Group</label>
+                        <select id="bloodGroup">
+                            <option value="">Select blood group</option>
+                            <option>A+</option><option>A-</option>
+                            <option>B+</option><option>B-</option>
+                            <option>AB+</option><option>AB-</option>
+                            <option>O+</option><option>O-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ethnicity</label>
+                        <select id="ethnicity">
+                            <option value="asian" selected>South Asian / Indian</option>
+                            <option value="western">Caucasian / Western</option>
+                            <option value="east_asian">East Asian</option>
+                            <option value="african">African</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="goToStep(1)">&larr; Back</button>
+                    <button class="btn btn-primary" onclick="goToStep(3)">Next &rarr;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Medical History -->
+        <div class="section" id="section3">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon" style="background:#fef3c7;color:#f59e0b;">&#127973;</div>
+                    Medical History
+                </div>
+                <div class="form-group full" style="margin-bottom:1rem;">
+                    <label>Do you have any of these conditions?</label>
+                    <div class="checkbox-grid" style="margin-top:0.5rem;">
+                        <label class="checkbox-item"><input type="checkbox" value="diabetes"> Diabetes</label>
+                        <label class="checkbox-item"><input type="checkbox" value="hypertension"> Hypertension</label>
+                        <label class="checkbox-item"><input type="checkbox" value="heart_disease"> Heart Disease</label>
+                        <label class="checkbox-item"><input type="checkbox" value="thyroid"> Thyroid Issues</label>
+                        <label class="checkbox-item"><input type="checkbox" value="asthma"> Asthma</label>
+                        <label class="checkbox-item"><input type="checkbox" value="arthritis"> Arthritis</label>
+                        <label class="checkbox-item"><input type="checkbox" value="pcos"> PCOS</label>
+                        <label class="checkbox-item"><input type="checkbox" value="cholesterol"> High Cholesterol</label>
+                        <label class="checkbox-item"><input type="checkbox" value="obesity"> Obesity</label>
+                        <label class="checkbox-item"><input type="checkbox" value="anemia"> Anemia</label>
+                        <label class="checkbox-item"><input type="checkbox" value="vitamin_d_deficiency"> Vitamin D Deficiency</label>
+                        <label class="checkbox-item"><input type="checkbox" value="kidney_disease"> Kidney Disease</label>
+                        <label class="checkbox-item"><input type="checkbox" value="liver_disease"> Liver Disease</label>
+                        <label class="checkbox-item"><input type="checkbox" value="depression"> Depression / Anxiety</label>
+                        <label class="checkbox-item"><input type="checkbox" value="migraine"> Migraine</label>
+                        <label class="checkbox-item"><input type="checkbox" value="back_pain"> Chronic Back Pain</label>
+                        <label class="checkbox-item"><input type="checkbox" value="sleep_apnea"> Sleep Apnea</label>
+                        <label class="checkbox-item"><input type="checkbox" value="ibs"> IBS / Digestive Issues</label>
+                        <label class="checkbox-item"><input type="checkbox" value="skin_issues"> Skin Issues (Acne/Eczema)</label>
+                        <label class="checkbox-item"><input type="checkbox" value="osteoporosis"> Osteoporosis</label>
+                        <label class="checkbox-item"><input type="checkbox" value="cancer"> Cancer (any type)</label>
+                        <label class="checkbox-item"><input type="checkbox" value="stroke"> Stroke History</label>
+                        <label class="checkbox-item"><input type="checkbox" value="epilepsy"> Epilepsy</label>
+                        <label class="checkbox-item"><input type="checkbox" value="allergic_rhinitis"> Allergic Rhinitis</label>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Current Medications (if any)</label>
+                        <textarea id="medications" placeholder="List any medications you are currently taking..."></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label>Allergies</label>
+                        <input type="text" id="allergies" placeholder="e.g. Peanuts, Lactose, Gluten">
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="goToStep(2)">&larr; Back</button>
+                    <button class="btn btn-primary" onclick="goToStep(4)">Next &rarr;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Lifestyle -->
+        <div class="section" id="section4">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon" style="background:#ede9fe;color:#8b5cf6;">&#127939;</div>
+                    Lifestyle & Habits
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Activity Level *</label>
+                        <select id="activity">
+                            <option value="">Select activity level</option>
+                            <option value="sedentary">Sedentary (Desk job, no exercise)</option>
+                            <option value="light">Light (1-2 days/week exercise)</option>
+                            <option value="moderate">Moderate (3-5 days/week)</option>
+                            <option value="active">Active (6-7 days/week)</option>
+                            <option value="athlete">Athlete / Very Active</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sleep Hours (per night) *</label>
+                        <input type="number" id="sleep" placeholder="e.g. 7" min="1" max="16" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Water Intake (glasses/day)</label>
+                        <input type="number" id="water" placeholder="e.g. 8" min="0" max="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Diet Type</label>
+                        <select id="diet">
+                            <option value="nonveg">Non-Vegetarian</option>
+                            <option value="veg">Vegetarian</option>
+                            <option value="vegan">Vegan</option>
+                            <option value="keto">Keto</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Do you smoke?</label>
+                        <select id="smoking">
+                            <option value="no">No</option>
+                            <option value="occasionally">Occasionally</option>
+                            <option value="yes">Yes, regularly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Alcohol Consumption</label>
+                        <select id="alcohol">
+                            <option value="no">Never</option>
+                            <option value="occasionally">Occasionally</option>
+                            <option value="moderate">Moderate (weekends)</option>
+                            <option value="heavy">Frequently</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label>Health Goals (select multiple)</label>
+                        <div class="checkbox-grid" style="margin-top:0.5rem;">
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="lose_weight"> Lose Weight</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="gain_weight"> Gain Weight</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="build_muscle"> Build Muscle</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="improve_stamina"> Improve Stamina</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="better_sleep"> Better Sleep</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="reduce_stress"> Reduce Stress</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="eat_healthier"> Eat Healthier</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="boost_immunity"> Boost Immunity</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="improve_flexibility"> Improve Flexibility</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="quit_smoking"> Quit Smoking</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="manage_diabetes"> Manage Diabetes</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="lower_bp"> Lower Blood Pressure</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="improve_digestion"> Improve Digestion</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="better_skin"> Better Skin & Hair</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="increase_energy"> Increase Energy</label>
+                            <label class="checkbox-item"><input type="checkbox" name="goals" value="improve_posture"> Improve Posture</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="goToStep(3)">&larr; Back</button>
+                    <button class="btn btn-primary" onclick="generateResults()">&#10024; Get AI Health Report</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="section" id="sectionLoading">
+            <div class="card loading">
+                <div class="spinner"></div>
+                <h3>Analyzing your health data...</h3>
+                <p style="color:var(--text-muted);margin-top:0.5rem;">Our AI is preparing personalized recommendations</p>
+            </div>
+        </div>
+
+        <!-- Section 5: Results -->
+        <div class="section" id="section5"></div>
+    </div>
+
+<script>
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function showToast(type, title, message, duration = 3500) {
+    const container = document.getElementById('toastContainer');
+    const icons = { error: '&#10060;', success: '&#9989;', warning: '&#9888;', info: '&#8505;' };
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.innerHTML = `
+        <div class="toast-icon">${icons[type] || icons.info}</div>
+        <div class="toast-body">
+            <div class="toast-title">${title}</div>
+            <div class="toast-msg">${message}</div>
+        </div>
+        <button class="toast-close" onclick="closeToast(this)">&times;</button>
+        <div class="toast-progress" style="animation-duration:${duration}ms"></div>`;
+    container.appendChild(toast);
+    setTimeout(() => closeToast(toast.querySelector('.toast-close')), duration);
+}
+
+function closeToast(btn) {
+    const toast = btn.closest ? btn.closest('.toast') : btn.parentElement;
+    if (!toast || toast.classList.contains('toast-out')) return;
+    toast.classList.add('toast-out');
+    setTimeout(() => toast.remove(), 300);
+}
+
+function goToStep(step) {
+    // Validate current step
+    if (step === 2) {
+        const name = document.getElementById('name').value.trim();
+        const age = document.getElementById('age').value;
+        const gender = document.getElementById('gender').value;
+        if (!name || !age || !gender) {
+            showToast('error', 'Missing Information', 'Please fill in your Name, Age, and Gender to continue.'); return;
+        }
+    }
+    if (step === 3) {
+        const height = document.getElementById('height').value;
+        const weight = document.getElementById('weight').value;
+        if (!height || !weight) {
+            showToast('error', 'Missing Information', 'Please enter your Height and Weight to continue.'); return;
+        }
+    }
+    if (step === 4) {
+        // No strict validation for medical history
+    }
+
+    // Update sections
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    const sec = document.getElementById('section' + step);
+    if (sec) sec.classList.add('active');
+
+    // Update steps
+    for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById('step' + i);
+        el.classList.remove('active', 'done');
+        if (i < step) el.classList.add('done');
+        else if (i === step) el.classList.add('active');
+    }
+}
+
+function navigateToStep(step) {
+    const stepEl = document.getElementById('step' + step);
+    if (stepEl.classList.contains('done') || stepEl.classList.contains('active')) {
+        goToStep(step);
+    } else {
+        showToast('warning', 'Navigation Blocked', 'Please complete the current step first.');
+    }
+}
+
+function getFormData() {
+    const conditions = [];
+    document.querySelectorAll('.checkbox-grid input[type="checkbox"]:checked:not([name="goals"])').forEach(cb => {
+        conditions.push(cb.value);
+    });
+
+    const goals = [];
+    document.querySelectorAll('input[name="goals"]:checked').forEach(cb => {
+        goals.push(cb.value);
+    });
+
+    return {
+        name: document.getElementById('name').value.trim(),
+        age: parseInt(document.getElementById('age').value),
+        gender: document.getElementById('gender').value,
+        pregnancy: document.getElementById('pregnancy').value || 'none',
+        ethnicity: document.getElementById('ethnicity').value || 'asian',
+        height: parseFloat(document.getElementById('height').value),
+        weight: parseFloat(document.getElementById('weight').value),
+        waist: document.getElementById('waist').value ? parseFloat(document.getElementById('waist').value) : null,
+        bloodGroup: document.getElementById('bloodGroup').value,
+        conditions,
+        medications: document.getElementById('medications').value.trim(),
+        allergies: document.getElementById('allergies').value.trim(),
+        activity: document.getElementById('activity').value,
+        sleep: parseFloat(document.getElementById('sleep').value) || 7,
+        water: parseInt(document.getElementById('water').value) || 6,
+        diet: document.getElementById('diet').value,
+        smoking: document.getElementById('smoking').value,
+        alcohol: document.getElementById('alcohol').value,
+        goals
+    };
+}
+
+function calculateBMI(weight, heightCm) {
+    const heightM = heightCm / 100;
+    return weight / (heightM * heightM);
+}
+
+function getBMICategory(bmi, ethnicity) {
+    if (ethnicity === 'asian' || ethnicity === 'east_asian') {
+        if (bmi < 18.5) return { label: 'Underweight', class: 'moderate', color: '#f59e0b' };
+        if (bmi < 23) return { label: 'Normal Weight', class: 'healthy', color: '#10b981' };
+        if (bmi < 25) return { label: 'Overweight', class: 'moderate', color: '#f59e0b' };
+        if (bmi < 30) return { label: 'Obese (Class I)', class: 'attention', color: '#ef4444' };
+        return { label: 'Obese (Class II)', class: 'attention', color: '#ef4444' };
+    }
+    if (bmi < 16) return { label: 'Severely Underweight', class: 'attention', color: '#ef4444' };
+    if (bmi < 18.5) return { label: 'Underweight', class: 'moderate', color: '#f59e0b' };
+    if (bmi < 25) return { label: 'Normal Weight', class: 'healthy', color: '#10b981' };
+    if (bmi < 30) return { label: 'Overweight', class: 'moderate', color: '#f59e0b' };
+    if (bmi < 35) return { label: 'Obese (Class I)', class: 'attention', color: '#ef4444' };
+    if (bmi < 40) return { label: 'Obese (Class II)', class: 'attention', color: '#ef4444' };
+    return { label: 'Obese (Class III)', class: 'attention', color: '#ef4444' };
+}
+
+function getIdealWeight(heightCm, gender) {
+    // Devine formula
+    const heightIn = heightCm / 2.54;
+    const over60 = Math.max(0, heightIn - 60);
+    if (gender === 'female') return 45.5 + (2.3 * over60);
+    return 50 + (2.3 * over60);
+}
+
+function calculateBMR(weight, heightCm, age, gender) {
+    // Mifflin-St Jeor
+    if (gender === 'female') return 10 * weight + 6.25 * heightCm - 5 * age - 161;
+    return 10 * weight + 6.25 * heightCm - 5 * age + 5;
+}
+
+function getTDEE(bmr, activity) {
+    const factors = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, athlete: 1.9 };
+    return bmr * (factors[activity] || 1.2);
+}
+
+function generateResults() {
+    const activity = document.getElementById('activity').value;
+    if (!activity) { showToast('error', 'Missing Information', 'Please select your Activity Level before generating the report.'); return; }
+
+    const sleepEmpty = !document.getElementById('sleep').value;
+    const waterEmpty = !document.getElementById('water').value;
+    if (sleepEmpty || waterEmpty) {
+        showToast('warning', 'Defaults Applied', 'Sleep and/or Water fields were empty. Using defaults (Sleep: 7 hrs, Water: 6 glasses).');
+    }
+
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sectionLoading').classList.add('active');
+
+    // Simulate AI processing
+    setTimeout(() => {
+        const data = getFormData();
+        const bmi = calculateBMI(data.weight, data.height);
+        const bmiCat = getBMICategory(bmi, data.ethnicity);
+        const idealWeight = getIdealWeight(data.height, data.gender);
+        const bmr = calculateBMR(data.weight, data.height, data.age, data.gender);
+        let tdee = getTDEE(bmr, data.activity);
+        // GAP 7: Adjust TDEE for pregnancy/breastfeeding
+        if (data.pregnancy === 'pregnant') tdee += 300;
+        if (data.pregnancy === 'breastfeeding') tdee += 500;
+        const weightDiff = data.weight - idealWeight;
+
+        // Generate health score
+        let healthScore = 75;
+        // GAP 6: Skip BMI component for pediatric
+        if (data.age < 18) {
+            // Skip BMI scoring for children, note it
+            healthScore += 0;
+        } else if (bmi >= 18.5 && bmi < 25) healthScore += 10;
+        else if (bmi >= 25 && bmi < 30) healthScore -= 5;
+        else healthScore -= 15;
+        if (data.activity === 'moderate' || data.activity === 'active' || data.activity === 'athlete') healthScore += 8;
+        if (data.activity === 'sedentary') healthScore -= 10;
+        if (data.sleep >= 7 && data.sleep <= 9) healthScore += 5;
+        else healthScore -= 5;
+        if (data.water >= 8) healthScore += 3;
+        if (data.smoking !== 'no') healthScore -= 15;
+        if (data.alcohol === 'heavy') healthScore -= 10;
+        if (data.conditions.length > 0) healthScore -= data.conditions.length * 3;
+        healthScore = Math.min(100, Math.max(10, healthScore));
+
+        const bmiPercent = Math.min(100, Math.max(0, ((bmi - 12) / 30) * 100));
+
+        let html = buildResultsHTML(data, bmi, bmiCat, idealWeight, weightDiff, bmr, tdee, healthScore, bmiPercent);
+
+        document.getElementById('section5').innerHTML = html;
+        document.getElementById('sectionLoading').classList.remove('active');
+        document.getElementById('section5').classList.add('active');
+
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById('step' + i).classList.remove('active');
+            document.getElementById('step' + i).classList.add('done');
+        }
+        document.getElementById('step5').classList.add('active');
+
+        // Trigger overview animations
+        setTimeout(() => animateOverview(), 300);
+    }, 2000);
+}
+
+function buildResultsHTML(data, bmi, bmiCat, idealWeight, weightDiff, bmr, tdee, healthScore, bmiPercent) {
+    let html = '';
+
+    // Score color
+    const scoreColor = healthScore >= 75 ? '#10b981' : healthScore >= 50 ? '#f59e0b' : '#ef4444';
+    const scoreWord = healthScore >= 75 ? 'Good' : healthScore >= 50 ? 'Fair' : 'Needs Attention';
+    const circumference = 2 * Math.PI * 72;
+    const scoreOffset = circumference - (healthScore / 100) * circumference;
+
+    // BMI gauge angle: map BMI 12-42 to 0-180 degrees
+    const gaugeAngle = Math.min(180, Math.max(0, ((bmi - 12) / 30) * 180));
+
+    // Score breakdowns
+    const bmiScore = data.age < 18 ? 50 : (bmi >= 18.5 && bmi < 25 ? 100 : bmi >= 25 && bmi < 30 ? 60 : bmi < 18.5 ? 50 : 30);
+    const actScore = data.activity === 'athlete' ? 100 : data.activity === 'active' ? 90 : data.activity === 'moderate' ? 70 : data.activity === 'light' ? 40 : 15;
+    const sleepScore = data.sleep >= 7 && data.sleep <= 9 ? 100 : data.sleep >= 6 ? 60 : 30;
+    const waterScore = data.water >= 8 ? 100 : data.water >= 5 ? 60 : 30;
+    const habitsScore = (data.smoking === 'no' ? 50 : 10) + (data.alcohol === 'no' ? 50 : data.alcohol === 'occasionally' ? 35 : 10);
+
+    // Quick summary pills
+    html += `<div class="quick-summary">`;
+    // BMI pill
+    const bmiPill = bmi >= 18.5 && bmi < 25 ? 'pill-good' : bmi >= 25 && bmi < 30 ? 'pill-warn' : 'pill-bad';
+    html += `<div class="summary-pill ${bmiPill}">
+        <div class="pill-icon">&#9878;</div>
+        <div class="pill-text"><strong>BMI: ${bmi.toFixed(1)}</strong>${bmiCat.label}</div>
+    </div>`;
+    // Weight pill
+    const wtPill = Math.abs(weightDiff) <= 5 ? 'pill-good' : Math.abs(weightDiff) <= 15 ? 'pill-warn' : 'pill-bad';
+    html += `<div class="summary-pill ${wtPill}">
+        <div class="pill-icon">&#9878;</div>
+        <div class="pill-text"><strong>${weightDiff > 0 ? '+' : ''}${weightDiff.toFixed(1)} kg</strong>${Math.abs(weightDiff) <= 5 ? 'Near ideal weight' : weightDiff > 0 ? 'Over ideal weight' : 'Under ideal weight'}</div>
+    </div>`;
+    // Score pill
+    const scPill = healthScore >= 75 ? 'pill-good' : healthScore >= 50 ? 'pill-warn' : 'pill-bad';
+    html += `<div class="summary-pill ${scPill}">
+        <div class="pill-icon">&#128200;</div>
+        <div class="pill-text"><strong>Score: ${healthScore}/100</strong>${scoreWord}</div>
+    </div>`;
+    // Calories
+    html += `<div class="summary-pill pill-good">
+        <div class="pill-icon">&#128293;</div>
+        <div class="pill-text"><strong>${Math.round(tdee)} kcal/day</strong>Daily calorie need</div>
+    </div>`;
+    html += `</div>`;
+
+    // Tab Navigation
+    html += `
+    <div class="result-tabs">
+        <button class="result-tab active" onclick="switchTab('overview',this)"><span class="tab-icon">&#128202;</span>Overview</button>
+        <button class="result-tab" onclick="switchTab('recommendations',this)"><span class="tab-icon">&#129302;</span>Action Plan</button>
+        <button class="result-tab" onclick="switchTab('goals',this)"><span class="tab-icon">&#127919;</span>Goals</button>
+        <button class="result-tab" onclick="switchTab('ayurveda',this)"><span class="tab-icon">&#127807;</span>Ayurveda</button>
+    </div>`;
+
+    // === TAB 1: OVERVIEW ===
+    html += `<div class="tab-content active" id="tab-overview">`;
+
+    // Health Score Ring + Breakdown
+    html += `
+    <div class="card">
+        <div class="card-title">&#128200; Health Score</div>
+        <div class="score-section">
+            <div class="score-ring-wrap">
+                <svg width="180" height="180">
+                    <circle class="score-ring-bg" cx="90" cy="90" r="72"/>
+                    <circle class="score-ring-fill" cx="90" cy="90" r="72"
+                        stroke="${scoreColor}"
+                        stroke-dasharray="${circumference}"
+                        stroke-dashoffset="${circumference}"
+                        data-target="${scoreOffset}" />
+                </svg>
+                <div class="score-ring-text">
+                    <div class="score-num" style="color:${scoreColor}">${healthScore}</div>
+                    <div class="score-lbl">${scoreWord}</div>
+                </div>
+            </div>
+            <div class="score-breakdown">
+                <div class="score-bar-item">
+                    <div class="score-bar-label"><span>&#9878; BMI & Weight${data.age < 18 ? ' (pediatric - not scored)' : ''}</span><span>${data.age < 18 ? 'N/A' : bmiScore + '%'}</span></div>
+                    <div class="score-bar-track"><div class="score-bar-fill" data-width="${data.age < 18 ? 0 : bmiScore}" style="background:${bmiScore>=70?'#10b981':bmiScore>=40?'#f59e0b':'#ef4444'}"></div></div>
+                </div>
+                <div class="score-bar-item">
+                    <div class="score-bar-label"><span>&#127939; Activity Level</span><span>${actScore}%</span></div>
+                    <div class="score-bar-track"><div class="score-bar-fill" data-width="${actScore}" style="background:${actScore>=70?'#10b981':actScore>=40?'#f59e0b':'#ef4444'}"></div></div>
+                </div>
+                <div class="score-bar-item">
+                    <div class="score-bar-label"><span>&#128164; Sleep Quality</span><span>${sleepScore}%</span></div>
+                    <div class="score-bar-track"><div class="score-bar-fill" data-width="${sleepScore}" style="background:${sleepScore>=70?'#10b981':sleepScore>=40?'#f59e0b':'#ef4444'}"></div></div>
+                </div>
+                <div class="score-bar-item">
+                    <div class="score-bar-label"><span>&#128167; Hydration</span><span>${waterScore}%</span></div>
+                    <div class="score-bar-track"><div class="score-bar-fill" data-width="${waterScore}" style="background:${waterScore>=70?'#10b981':waterScore>=40?'#f59e0b':'#ef4444'}"></div></div>
+                </div>
+                <div class="score-bar-item">
+                    <div class="score-bar-label"><span>&#128683; Habits</span><span>${habitsScore}%</span></div>
+                    <div class="score-bar-track"><div class="score-bar-fill" data-width="${habitsScore}" style="background:${habitsScore>=70?'#10b981':habitsScore>=40?'#f59e0b':'#ef4444'}"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    // BMI Gauge
+    const isAsianBMI = data.ethnicity === 'asian' || data.ethnicity === 'east_asian';
+    const isPediatric = data.age < 18;
+    html += `
+    <div class="card">
+        <div class="card-title">&#9878; BMI Analysis</div>`;
+    if (isPediatric) {
+        html += `<div style="margin-bottom:1rem;padding:1rem;background:#dbeafe;border-radius:10px;border:1px solid #93c5fd;font-size:0.88rem;color:#1e40af;">
+            <strong>&#9432; Pediatric BMI Notice:</strong> BMI for children uses growth charts, not adult cutoffs. The ranges shown are for reference only. Please consult your child's pediatrician.
+        </div>`;
+    }
+    html += `<div class="bmi-gauge-wrap">
+            <div class="bmi-gauge">
+                <svg viewBox="0 0 220 130">
+                    <path d="M 15 110 A 95 95 0 0 1 205 110" fill="none" stroke="#3b82f6" stroke-width="18" stroke-linecap="round" stroke-dasharray="75 225" stroke-dashoffset="0"/>
+                    <path d="M 15 110 A 95 95 0 0 1 205 110" fill="none" stroke="#10b981" stroke-width="18" stroke-linecap="round" stroke-dasharray="75 225" stroke-dashoffset="-75"/>
+                    <path d="M 15 110 A 95 95 0 0 1 205 110" fill="none" stroke="#f59e0b" stroke-width="18" stroke-linecap="round" stroke-dasharray="50 250" stroke-dashoffset="-150"/>
+                    <path d="M 15 110 A 95 95 0 0 1 205 110" fill="none" stroke="#ef4444" stroke-width="18" stroke-linecap="round" stroke-dasharray="100 200" stroke-dashoffset="-200"/>
+                    <line class="gauge-needle" x1="110" y1="110" x2="110" y2="25" stroke="#0f172a" stroke-width="3" stroke-linecap="round" style="transform:rotate(${-90 + gaugeAngle}deg)"/>
+                    <circle cx="110" cy="110" r="6" fill="#0f172a"/>
+                </svg>
+                <div class="bmi-gauge-value">
+                    <div class="gv-num" style="color:${bmiCat.color || scoreColor}">${bmi.toFixed(1)}</div>
+                    <div class="gv-label">${isPediatric ? 'Pediatric - See Doctor' : bmiCat.label}</div>
+                </div>
+            </div>
+            <div class="bmi-info-cards">`;
+    if (isPediatric) {
+        html += `<div class="bmi-info-item highlight"><div class="bmi-info-dot" style="background:#3b82f6"></div><div class="bmi-info-text"><strong>Pediatric BMI</strong>For children and teens (age &lt; 18), BMI is interpreted using age-and-gender-specific percentiles. Your calculated BMI is ${bmi.toFixed(1)}. Please consult a pediatrician for accurate assessment.</div></div>`;
+    } else if (isAsianBMI) {
+        html += `
+                <div class="bmi-info-item ${bmi < 18.5 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#3b82f6"></div><div class="bmi-info-text"><strong>Underweight</strong>BMI below 18.5</div></div>
+                <div class="bmi-info-item ${bmi >= 18.5 && bmi < 23 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#10b981"></div><div class="bmi-info-text"><strong>Normal</strong>BMI 18.5 - 22.9</div></div>
+                <div class="bmi-info-item ${bmi >= 23 && bmi < 25 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#f59e0b"></div><div class="bmi-info-text"><strong>Overweight</strong>BMI 23 - 24.9</div></div>
+                <div class="bmi-info-item ${bmi >= 25 && bmi < 30 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#ef4444"></div><div class="bmi-info-text"><strong>Obese Class I</strong>BMI 25 - 29.9</div></div>
+                <div class="bmi-info-item ${bmi >= 30 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#ef4444"></div><div class="bmi-info-text"><strong>Obese Class II</strong>BMI 30 and above</div></div>`;
+    } else {
+        html += `
+                <div class="bmi-info-item ${bmi < 18.5 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#3b82f6"></div><div class="bmi-info-text"><strong>Underweight</strong>BMI below 18.5</div></div>
+                <div class="bmi-info-item ${bmi >= 18.5 && bmi < 25 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#10b981"></div><div class="bmi-info-text"><strong>Normal</strong>BMI 18.5 - 24.9</div></div>
+                <div class="bmi-info-item ${bmi >= 25 && bmi < 30 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#f59e0b"></div><div class="bmi-info-text"><strong>Overweight</strong>BMI 25 - 29.9</div></div>
+                <div class="bmi-info-item ${bmi >= 30 ? 'highlight' : ''}"><div class="bmi-info-dot" style="background:#ef4444"></div><div class="bmi-info-text"><strong>Obese</strong>BMI 30 and above</div></div>`;
+    }
+    html += `</div>
+        </div>
+    </div>`;
+
+    // Vital Stats with tooltips
+    html += `
+    <div class="card">
+        <div class="card-title">&#128202; Vital Statistics</div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">&#128200;</div>
+                <div class="stat-value" style="color:${scoreColor}">${healthScore}/100</div>
+                <div class="stat-label">Health Score</div>
+                <div class="stat-tooltip">Overall health score based on BMI, activity, sleep, water intake, and habits. 75+ is good, 50-74 is fair.</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">&#9878;</div>
+                <div class="stat-value">${idealWeight.toFixed(1)} kg</div>
+                <div class="stat-label">Ideal Weight</div>
+                <div class="stat-tooltip">Calculated using the Devine formula based on your height (${data.height} cm) and gender. This is a healthy target range.</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">&#128293;</div>
+                <div class="stat-value">${Math.round(bmr)}</div>
+                <div class="stat-label">BMR (kcal/day)</div>
+                <div class="stat-tooltip">Basal Metabolic Rate — calories your body burns at rest. Calculated using Mifflin-St Jeor equation.</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">&#127860;</div>
+                <div class="stat-value">${Math.round(tdee)}</div>
+                <div class="stat-label">Daily Calories</div>
+                <div class="stat-tooltip">Total Daily Energy Expenditure — BMR adjusted for your activity level (${data.activity}). This is how much you should eat to maintain weight.</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">${weightDiff > 2 ? '&#9888;' : weightDiff < -2 ? '&#9888;' : '&#9989;'}</div>
+                <div class="stat-value">${weightDiff > 0 ? '+' : ''}${weightDiff.toFixed(1)} kg</div>
+                <div class="stat-label">${weightDiff > 2 ? 'Over Ideal' : weightDiff < -2 ? 'Under Ideal' : 'On Track'}</div>
+                <div class="stat-tooltip">${Math.abs(weightDiff) <= 2 ? 'Great! Your weight is close to ideal.' : 'Difference between current weight (' + data.weight + ' kg) and ideal weight (' + idealWeight.toFixed(1) + ' kg).'}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">&#128167;</div>
+                <div class="stat-value">${data.water}</div>
+                <div class="stat-label">Glasses Water/Day</div>
+                <div class="stat-tooltip">${data.water >= 8 ? 'Good hydration! Keep it up.' : 'You need more water. Aim for 8-10 glasses daily for better energy, skin, and digestion.'}</div>
+            </div>
+        </div>
+    </div>`;
+
+    html += `</div>`; // end tab-overview
+
+    // === TAB 2: RECOMMENDATIONS ===
+    html += `<div class="tab-content" id="tab-recommendations">`;
+    // GAP 7: Pregnancy/Breastfeeding warning
+    if (data.pregnancy === 'pregnant' || data.pregnancy === 'breastfeeding') {
+        const pregLabel = data.pregnancy === 'pregnant' ? 'pregnant' : 'breastfeeding';
+        html += `<div class="card" style="background:#fef2f2;border:2px solid #fecaca;">
+            <div style="display:flex;align-items:center;gap:0.8rem;">
+                <div style="font-size:2rem;">&#9888;</div>
+                <div>
+                    <h3 style="color:#991b1b;font-size:1rem;">You are ${pregLabel}.</h3>
+                    <p style="color:#991b1b;font-size:0.88rem;margin-top:0.3rem;">Many supplements, herbs, and intense exercise routines are NOT safe. Always consult your OB-GYN before making any changes.</p>
+                </div>
+            </div>
+        </div>`;
+    }
+    html += `<div class="card">
+        <div class="card-title">&#129302; AI Health Recommendations</div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin:-1rem 0 1rem;">
+            &#128073; Click any card to see the full action plan. Cards are numbered by priority — <strong>start from #1</strong>.
+        </p>
+        <div class="rec-grid">`;
+
+    // AI Recommendations — Interactive Priority Grid
+    html += `<div class="card">
+        <div class="card-title">&#129302; AI Health Recommendations</div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin:-1rem 0 1rem;">
+            &#128073; Click any card to see the full action plan. Cards are numbered by priority — <strong>start from #1</strong>.
+        </p>
+        <div class="rec-grid">`;
+
+    // Build prioritized recommendations
+    let recs = [];
+    let priority = 1;
+
+    // #1 — Always first: Visit Doctor & Get Blood Tests
+    const bloodTests = [];
+    // Core tests for everyone
+    bloodTests.push('Complete Blood Count (CBC) — checks for anemia, infections, blood disorders');
+    bloodTests.push('Fasting Blood Sugar (FBS) & HbA1c — screens for diabetes and pre-diabetes');
+    bloodTests.push('Lipid Profile — total cholesterol, LDL, HDL, triglycerides');
+    bloodTests.push('Liver Function Test (LFT) — SGOT, SGPT, bilirubin');
+    bloodTests.push('Kidney Function Test (KFT) — creatinine, urea, uric acid');
+    bloodTests.push('Thyroid Profile (TSH, T3, T4) — thyroid function screening');
+    bloodTests.push('Vitamin D & Vitamin B12 levels — very common deficiencies');
+
+    // Age-specific
+    if (data.age >= 30) bloodTests.push('ECG & Blood Pressure monitoring — heart health baseline');
+    if (data.age >= 40) bloodTests.push('HbA1c every 6 months — diabetes risk increases with age');
+    if (data.age >= 45) bloodTests.push('PSA (men) / Mammogram (women) — cancer screening');
+    if (data.age >= 50) bloodTests.push('Bone Density (DEXA) scan — osteoporosis screening');
+
+    // Condition-specific
+    if (data.conditions.includes('diabetes')) bloodTests.push('HbA1c every 3 months + Fasting Insulin + Kidney microalbumin');
+    if (data.conditions.includes('hypertension')) bloodTests.push('Electrolytes (Sodium, Potassium) + Renal function panel');
+    if (data.conditions.includes('heart_disease')) bloodTests.push('Troponin, BNP, Echocardiogram, Stress test');
+    if (data.conditions.includes('thyroid')) bloodTests.push('Full Thyroid Panel: TSH, Free T3, Free T4, Anti-TPO antibodies');
+    if (data.conditions.includes('pcos')) bloodTests.push('Hormonal panel: LH, FSH, Testosterone, DHEAS, Insulin');
+    if (data.conditions.includes('anemia')) bloodTests.push('Serum Iron, Ferritin, TIBC, Peripheral Blood Smear');
+    if (data.conditions.includes('cholesterol')) bloodTests.push('Advanced Lipid Panel + Apolipoprotein B + hs-CRP');
+    if (data.conditions.includes('liver_disease')) bloodTests.push('GGT, Albumin, Prothrombin Time, Hepatitis B & C screening');
+    if (data.conditions.includes('kidney_disease')) bloodTests.push('eGFR, Urine Albumin-Creatinine Ratio, Cystatin C');
+    if (data.conditions.includes('arthritis')) bloodTests.push('ESR, CRP, Rheumatoid Factor (RF), Anti-CCP antibodies');
+    if (data.conditions.includes('osteoporosis')) bloodTests.push('Serum Calcium, Phosphorus, Alkaline Phosphatase, DEXA scan');
+    if (data.conditions.includes('vitamin_d_deficiency')) bloodTests.push('25-Hydroxy Vitamin D (target: 30-50 ng/ml)');
+
+    // BMI-specific
+    if (bmi >= 30) bloodTests.push('Insulin Resistance Panel (HOMA-IR) — obesity increases diabetes risk');
+    if (bmi < 18.5) bloodTests.push('Serum Albumin, Iron studies, B12, Folate — check for nutritional deficiencies');
+
+    // Lifestyle-specific
+    if (data.smoking !== 'no') bloodTests.push('Chest X-Ray + Lung function test (Spirometry) — smoker screening');
+    if (data.alcohol === 'heavy') bloodTests.push('GGT + MCV — markers for alcohol-related liver damage');
+
+    recs.push({ p: priority++, urgency: 'critical', cls: 'warning full-width',
+        icon: '&#129658;', title: 'Step 1: Visit a Doctor & Get These Blood Tests Done',
+        summary: 'Before starting any health plan, get a proper health checkup. Below are the tests recommended based on your age, conditions, and lifestyle.',
+        details: `
+            <div style="margin-bottom:0.8rem;">
+                <p style="margin-bottom:0.5rem;"><strong>&#128197; Recommended frequency:</strong> Full health checkup at least once a year. If you have chronic conditions, every 3-6 months.</p>
+            </div>
+            <table class="meal-table">
+                <tr><th style="width:50%;">Test Name</th><th>Why You Need It</th></tr>
+                ${bloodTests.map(t => {
+                    const parts = t.split(' — ');
+                    return '<tr><td><strong>' + parts[0] + '</strong></td><td>' + (parts[1] || 'Routine screening') + '</td></tr>';
+                }).join('')}
+            </table>
+            <div style="margin-top:1rem; padding:0.8rem; background:#fef2f2; border-radius:8px; font-size:0.85rem;">
+                <strong>&#128680; Important:</strong> Share this report with your doctor. Do NOT start any supplement, herb, or major diet change without medical consultation.
+                Bring your previous reports for comparison. Fasting 8-12 hours is required for accurate blood sugar and lipid results.
+            </div>` });
+
+    // Smoking — highest priority if present
+    if (data.smoking !== 'no') {
+        recs.push({ p: priority++, urgency: 'critical', cls: 'warning',
+            icon: '&#128683;', title: 'Quit Smoking — Top Priority',
+            summary: 'Smoking is the #1 preventable cause of death. Every day without smoking improves your health.',
+            details: `<ul>
+                <li>Consider nicotine replacement therapy (patches, gums)</li>
+                <li>Seek support from a healthcare professional</li>
+                <li>Identify triggers and develop coping strategies</li>
+                <li>Benefits start within 20 minutes of your last cigarette</li>
+                <li>Lung function improves within 2 weeks of quitting</li>
+            </ul>` });
+    }
+
+    // Weight
+    const skipWeightLoss = data.pregnancy === 'pregnant' || data.pregnancy === 'breastfeeding';
+    if (weightDiff > 5 && !skipWeightLoss) {
+        const targetCal = Math.round(tdee - 500);
+        recs.push({ p: priority++, urgency: weightDiff > 15 ? 'critical' : 'high', cls: 'diet',
+            icon: '&#9878;', title: `Lose ${weightDiff.toFixed(1)} kg — Fix Your Weight`,
+            summary: `You are ${weightDiff.toFixed(1)} kg over ideal. Target ${targetCal} kcal/day for safe weight loss.`,
+            details: `<ul>
+                <li>Target daily calories: <strong>${targetCal} kcal</strong> (500 kcal deficit)</li>
+                <li>Expected healthy weight loss: ~0.5 kg per week</li>
+                <li>Focus on high-protein, high-fiber foods to stay full</li>
+                <li>Avoid sugary drinks, processed foods, and late-night snacking</li>
+                <li>Eat slowly and use smaller plates to control portions</li>
+            </ul>` });
+    } else if (weightDiff > 5 && skipWeightLoss) {
+        recs.push({ p: priority++, urgency: 'medium', cls: 'diet',
+            icon: '&#129328;', title: 'Weight Management — Consult OB-GYN',
+            summary: 'Weight loss is not recommended during pregnancy/breastfeeding. Focus on balanced nutrition and consult your OB-GYN.',
+            details: `<ul>
+                <li>Do NOT attempt calorie deficit during pregnancy or breastfeeding</li>
+                <li>Focus on nutrient-dense foods for you and your baby</li>
+                <li>Your daily calorie need (adjusted): <strong>${Math.round(tdee)} kcal</strong></li>
+                <li>Consult your OB-GYN for personalized weight guidance</li>
+            </ul>` });
+    } else if (weightDiff < -5) {
+        const targetCal = Math.round(tdee + 400);
+        recs.push({ p: priority++, urgency: weightDiff < -15 ? 'critical' : 'high', cls: 'diet',
+            icon: '&#127860;', title: `Gain ${Math.abs(weightDiff).toFixed(1)} kg — Build Up`,
+            summary: `You are ${Math.abs(weightDiff).toFixed(1)} kg under ideal. Target ${targetCal} kcal/day to gain healthily.`,
+            details: `<ul>
+                <li>Target daily calories: <strong>${targetCal} kcal</strong> (400 kcal surplus)</li>
+                <li>Eat 5-6 smaller meals throughout the day</li>
+                <li>Include calorie-dense foods: nuts, avocados, whole grains, dairy</li>
+                <li>Add protein shakes or smoothies between meals</li>
+                <li>Strength training to build muscle mass</li>
+            </ul>` });
+    } else {
+        recs.push({ p: priority++, urgency: 'low', cls: 'diet',
+            icon: '&#9989;', title: 'Weight on Track — Maintain It',
+            summary: `Great! Your weight is near ideal. Maintain ~${Math.round(tdee)} kcal/day.`,
+            details: `<ul>
+                <li>Maintain daily intake around <strong>${Math.round(tdee)} kcal</strong></li>
+                <li>Continue balanced eating with variety in all food groups</li>
+                <li>Monitor weight monthly to catch any trends early</li>
+            </ul>` });
+    }
+
+    // Alcohol
+    if (data.alcohol === 'heavy') {
+        recs.push({ p: priority++, urgency: 'critical', cls: 'warning',
+            icon: '&#127863;', title: 'Reduce Alcohol — Serious Risk',
+            summary: 'Frequent alcohol damages liver, brain, and heart. Cut down urgently.',
+            details: `<ul>
+                <li>Limit to max 1-2 drinks per occasion</li>
+                <li>Alcohol adds empty calories (7 kcal/gram)</li>
+                <li>Alternate alcoholic drinks with water</li>
+                <li>Have at least 3-4 alcohol-free days per week</li>
+                <li>Seek professional help if you find it hard to reduce</li>
+            </ul>` });
+    } else if (data.alcohol === 'moderate') {
+        recs.push({ p: priority++, urgency: 'medium', cls: 'warning',
+            icon: '&#127863;', title: 'Watch Your Alcohol Intake',
+            summary: 'Moderate drinking can still add up. Aim for 3-4 alcohol-free days/week.',
+            details: `<ul>
+                <li>Limit to max 1-2 drinks per occasion</li>
+                <li>Alcohol adds empty calories (7 kcal/gram)</li>
+                <li>Alternate alcoholic drinks with water</li>
+                <li>Have at least 3-4 alcohol-free days per week</li>
+            </ul>` });
+    }
+
+    // Exercise
+    if (data.activity === 'sedentary') {
+        recs.push({ p: priority++, urgency: 'high', cls: 'exercise',
+            icon: '&#127939;', title: 'Start Exercising — Beginner Plan',
+            summary: 'Sedentary lifestyle is a major risk factor. Start with just 15 min of walking.',
+            details: `<ul>
+                <li><strong>Week 1-2:</strong> 15-20 min brisk walking daily</li>
+                <li><strong>Week 3-4:</strong> 30 min walking + basic stretching</li>
+                <li><strong>Week 5-6:</strong> Add bodyweight exercises (squats, pushups)</li>
+                <li><strong>Week 7+:</strong> 30-40 min mixed cardio + strength training</li>
+                <li>Take stairs instead of elevator</li>
+                <li>Stand up and move every 30 minutes at your desk</li>
+            </ul>` });
+    } else if (data.activity === 'light') {
+        recs.push({ p: priority++, urgency: 'medium', cls: 'exercise',
+            icon: '&#127939;', title: 'Level Up Your Fitness',
+            summary: 'You\'re lightly active — increasing to 150 min/week will make a big difference.',
+            details: `<ul>
+                <li>Aim for 150 min moderate exercise per week</li>
+                <li>Mix cardio (jogging, cycling) with strength training</li>
+                <li>Try HIIT workouts 2x per week for efficiency</li>
+                <li>Include flexibility work: yoga or stretching sessions</li>
+                <li>Track your steps - target 8,000-10,000 daily</li>
+            </ul>` });
+    } else {
+        recs.push({ p: priority++, urgency: 'low', cls: 'exercise',
+            icon: '&#128170;', title: 'Great Fitness Level — Keep Going',
+            summary: 'Your activity level is excellent. Vary workouts and include rest days.',
+            details: `<ul>
+                <li>Vary workouts to prevent plateaus and boredom</li>
+                <li>Include rest days for recovery (1-2 per week)</li>
+                <li>Focus on progressive overload in strength training</li>
+                <li>Consider periodization for long-term progress</li>
+                <li>Stay hydrated and fuel properly pre/post workout</li>
+            </ul>` });
+    }
+
+    // Sleep
+    if (data.sleep < 7) {
+        recs.push({ p: priority++, urgency: data.sleep < 5 ? 'critical' : 'high', cls: 'lifestyle',
+            icon: '&#128164;', title: 'Fix Your Sleep — Only ' + data.sleep + ' hrs',
+            summary: 'Poor sleep affects immunity, weight, mood, and focus. Adults need 7-9 hours.',
+            details: `<ul>
+                <li>Set a consistent sleep schedule - same time every night</li>
+                <li>Avoid screens 1 hour before bed</li>
+                <li>Keep your room dark, cool (18-20°C), and quiet</li>
+                <li>Avoid caffeine after 2 PM</li>
+                <li>Try relaxation techniques: deep breathing, meditation</li>
+            </ul>` });
+    }
+
+    // Water
+    if (data.water < 8) {
+        recs.push({ p: priority++, urgency: data.water < 4 ? 'high' : 'medium', cls: 'lifestyle',
+            icon: '&#128167;', title: 'Drink More Water — ' + data.water + ' Glasses Isn\'t Enough',
+            summary: 'Dehydration causes fatigue, headaches, and poor digestion. Aim for 8-10 glasses.',
+            details: `<ul>
+                <li>Start your day with a glass of warm water</li>
+                <li>Keep a water bottle at your desk</li>
+                <li>Set hourly reminders to drink water</li>
+                <li>Eat water-rich fruits: watermelon, cucumber, oranges</li>
+            </ul>` });
+    }
+
+    // Meal Plan — always full width
+    recs.push({ p: priority++, urgency: 'medium', cls: 'diet full-width',
+        icon: '&#129367;', title: 'Your Personalized Meal Plan',
+        summary: 'A structured meal plan based on your calorie needs and diet preference. Click to view.',
+        details: buildMealPlanContent(data, tdee, weightDiff) });
+
+    // Medical conditions — each gets a card
+    data.conditions.forEach(condition => {
+        const advice = getConditionData(condition);
+        if (advice) {
+            let detailsHtml = `<ul>${advice.tips.map(t => '<li>' + t + '</li>').join('')}</ul>`;
+            if (advice.severe) {
+                detailsHtml += `<div style="margin-top:0.6rem;padding:0.5rem;background:#fef2f2;border-radius:6px;font-size:0.78rem;color:#991b1b;border:1px solid #fecaca;"><strong>&#9888; Critical:</strong> This is a serious condition. Do NOT self-medicate. Consult your doctor before making any changes to diet, exercise, or medication.</div>`;
+            }
+            recs.push({ p: priority++, urgency: advice.severe ? 'critical' : 'high', cls: 'medical',
+                icon: advice.icon, title: advice.title,
+                summary: advice.summary,
+                details: detailsHtml });
+        }
+    });
+
+    // Render all rec cards
+    recs.forEach(r => {
+        const pClass = r.p <= 2 ? 'p1' : r.p <= 4 ? 'p2' : r.p <= 6 ? 'p3' : r.p <= 8 ? 'p4' : 'p5';
+        html += `
+        <div class="rec-card ${r.cls}" onclick="toggleCard(this)">
+            <div class="priority-badge ${pClass}">${r.p}</div>
+            <div class="urgency-tag ${r.urgency}">${r.urgency === 'critical' ? '&#9888; Do This First' : r.urgency === 'high' ? '&#9889; High Priority' : r.urgency === 'medium' ? '&#128312; Important' : '&#9989; On Track'}</div>
+            <h4>${r.icon} ${r.title}</h4>
+            <p>${r.summary}</p>
+            <div class="rec-details">${r.details}</div>
+            <span class="rec-toggle">&#9660; Click to see action plan</span>
+        </div>`;
+    });
+
+    html += `</div></div></div>`; // close rec-grid, card, tab-recommendations
+
+    // === TAB 3: GOALS ===
+    html += `<div class="tab-content" id="tab-goals">`;
+    if (data.goals.length > 0) {
+        html += `<div class="card"><div class="card-title">&#127919; Your Health Goals - Action Plan</div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin:-1rem 0 1rem;">Personalized action steps for each goal you selected. Click any card to expand.</p>
+        <div class="rec-grid">`;
+        data.goals.forEach(goal => {
+            html += buildGoalAdvice(goal);
+        });
+        html += `</div></div>`;
+    } else {
+        html += `<div class="card" style="text-align:center;padding:3rem;">
+            <div style="font-size:3rem;margin-bottom:0.5rem;">&#127919;</div>
+            <h3>No Goals Selected</h3>
+            <p style="color:var(--text-muted);margin-top:0.5rem;">Go back and select your health goals in Step 4 to get a personalized action plan.</p>
+        </div>`;
+    }
+    html += `</div>`; // close tab-goals
+
+    // === TAB 4: AYURVEDA ===
+    html += `<div class="tab-content" id="tab-ayurveda">`;
+    html += buildAyurvedicSection(data, bmi);
+    html += `</div>`; // close tab-ayurveda
+
+    // Disclaimer & Actions (always visible below tabs)
+    html += `
+    <div class="disclaimer">
+        <strong>&#9888; Disclaimer:</strong> This report is generated by an AI system for informational purposes only.
+        It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified
+        healthcare provider before making changes to your diet, exercise, or medication.
+        <br><br><strong>&#127807; Ayurvedic Note:</strong> Ayurvedic suggestions are based on traditional Indian medicine (Ayurveda).
+        Please consult a qualified Ayurvedic practitioner (Vaidya) before starting any herbal remedies, especially if you
+        are pregnant, breastfeeding, or on medication.
+    </div>
+    <div class="btn-row" style="margin-top:1rem;">
+        <button class="btn btn-secondary" onclick="goToStep(1)">&#8634; Start Over</button>
+        <button class="btn btn-print" onclick="window.print()">&#128424; Print Report</button>
+    </div>`;
+
+    return html;
+}
+
+// Old buildMealPlan, buildExercisePlan, buildConditionAdvice removed — logic now uses getConditionData()
+
+function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    btn.classList.add('active');
+    // Trigger animations when overview tab is shown
+    if (tabId === 'overview') animateOverview();
+}
+
+function animateOverview() {
+    // Animate score ring
+    setTimeout(() => {
+        document.querySelectorAll('.score-ring-fill').forEach(el => {
+            el.style.strokeDashoffset = el.getAttribute('data-target');
+        });
+        // Animate score bars
+        document.querySelectorAll('.score-bar-fill').forEach(el => {
+            el.style.width = el.getAttribute('data-width') + '%';
+        });
+    }, 100);
+}
+
+function toggleCard(el) {
+    const wasExpanded = el.classList.contains('expanded');
+    el.classList.toggle('expanded');
+    const toggle = el.querySelector('.rec-toggle');
+    if (toggle) {
+        toggle.innerHTML = wasExpanded ? '&#9660; Click to see action plan' : '&#9650; Click to collapse';
+    }
+}
+
+function buildMealPlanContent(data, tdee, weightDiff) {
+    let cals = Math.round(weightDiff > 5 ? tdee - 500 : weightDiff < -5 ? tdee + 400 : tdee);
+    let proteinG = Math.round(data.weight * 1.2);
+    let fatG = Math.round((cals * 0.25) / 9);
+    let carbG = Math.round((cals - proteinG * 4 - fatG * 9) / 4);
+
+    const isVeg = data.diet === 'veg' || data.diet === 'vegan';
+    const isVegan = data.diet === 'vegan';
+    let breakfast, midMorning, lunch, snack, dinner;
+
+    if (isVegan) {
+        breakfast = 'Oatmeal with almond milk, chia seeds, banana & nuts';
+        midMorning = 'Mixed fruit smoothie with soy protein';
+        lunch = 'Quinoa bowl with chickpeas, veggies & tahini dressing';
+        snack = 'Hummus with carrot sticks & whole wheat crackers';
+        dinner = 'Tofu stir-fry with brown rice & steamed broccoli';
+    } else if (isVeg) {
+        breakfast = 'Moong dal chilla / Oats upma with vegetables & curd';
+        midMorning = 'Fruit bowl with mixed nuts & seeds';
+        lunch = 'Roti + dal + paneer sabzi + salad + buttermilk';
+        snack = 'Sprouts chaat / Greek yogurt with granola';
+        dinner = 'Khichdi with vegetables / Roti + curd + light sabzi';
+    } else {
+        breakfast = 'Eggs (boiled/scrambled) + whole wheat toast + fruit';
+        midMorning = 'Greek yogurt with almonds & berries';
+        lunch = 'Grilled chicken/fish + brown rice + salad + dal';
+        snack = 'Protein shake / Handful of nuts + fruit';
+        dinner = 'Lean meat/fish + roti + vegetables + soup';
+    }
+
+    let mealHtml = `
+        <p style="margin-bottom:0.5rem;"><strong>Macros Target:</strong> Protein ${proteinG}g | Carbs ${carbG}g | Fat ${fatG}g</p>
+        <table class="meal-table">
+            <tr><th>Meal</th><th>Time</th><th>Suggestion</th></tr>
+            <tr><td><strong>Breakfast</strong></td><td>7:00 - 8:00 AM</td><td>${breakfast}</td></tr>
+            <tr><td><strong>Mid-Morning</strong></td><td>10:00 AM</td><td>${midMorning}</td></tr>
+            <tr><td><strong>Lunch</strong></td><td>12:30 - 1:30 PM</td><td>${lunch}</td></tr>
+            <tr><td><strong>Snack</strong></td><td>4:00 - 5:00 PM</td><td>${snack}</td></tr>
+            <tr><td><strong>Dinner</strong></td><td>7:00 - 8:00 PM</td><td>${dinner}</td></tr>
+        </table>`;
+
+    // GAP 2: Allergy substitutions
+    if (data.allergies) {
+        const allergyKeywords = data.allergies.split(',').map(a => a.trim().toLowerCase()).filter(a => a);
+        const substitutionMap = {
+            dairy: 'Use almond/soy milk, tofu instead of paneer/curd',
+            gluten: 'Use rice/millets instead of wheat/roti',
+            nuts: 'Replace nuts with seeds (pumpkin, sunflower)',
+            eggs: 'Replace eggs with tofu scramble or paneer bhurji',
+            seafood: 'Replace fish with paneer/tofu/legumes',
+            soy: 'Replace tofu/soy with paneer/legumes',
+            lactose: 'Use lactose-free dairy or plant milk'
+        };
+        const matchedSubs = [];
+        allergyKeywords.forEach(allergy => {
+            Object.keys(substitutionMap).forEach(key => {
+                if (allergy.includes(key) || key.includes(allergy)) {
+                    matchedSubs.push(substitutionMap[key]);
+                }
+            });
+        });
+        if (matchedSubs.length > 0) {
+            mealHtml += `<div style="margin-top:0.8rem;padding:0.7rem;background:#fef2f2;border-radius:8px;font-size:0.82rem;border:1px solid #fecaca;"><strong>&#9888; Allergy Adjustments (based on your allergies: ${escapeHTML(data.allergies)}):</strong><ul>${matchedSubs.map(s => '<li>' + s + '</li>').join('')}</ul></div>`;
+        }
+    }
+
+    return mealHtml;
+}
+
+function getConditionData(condition) {
+    const data = {
+        diabetes: { icon: '&#127852;', title: 'Diabetes Management', summary: 'Blood sugar control is critical. Monitor levels and follow a low-GI diet.',
+            tips: ['Monitor blood sugar levels regularly', 'Choose low glycemic index (GI) foods', "Eat at regular intervals - don't skip meals", 'Limit refined carbs: white rice, white bread, sugar', 'Include fiber-rich foods: vegetables, whole grains, legumes', 'Regular exercise helps insulin sensitivity'] },
+        hypertension: { icon: '&#128147;', title: 'Blood Pressure Control', summary: 'High BP silently damages organs. Reduce sodium and manage stress.',
+            tips: ['Reduce sodium intake (less than 2,300 mg/day)', 'Follow DASH diet: fruits, vegetables, whole grains', 'Manage stress through meditation or deep breathing', 'Regular moderate exercise lowers BP naturally', 'Limit caffeine and monitor its effect on your BP', 'Monitor blood pressure at home weekly'] },
+        heart_disease: { icon: '&#129728;', title: 'Heart Health', severe: true, summary: 'Protect your heart with Mediterranean diet, exercise, and stress management.',
+            tips: ['Follow a heart-healthy Mediterranean diet', 'Limit saturated fats and trans fats', 'Eat omega-3 rich foods: fatty fish, flaxseeds, walnuts', 'Maintain regular gentle exercise as advised by your doctor', 'Manage stress and get adequate sleep', 'Take prescribed medications consistently'] },
+        thyroid: { icon: '&#129516;', title: 'Thyroid Management', summary: 'Thyroid affects metabolism, energy, and weight. Regular monitoring is key.',
+            tips: ['Take thyroid medication on empty stomach (if prescribed)', 'Include selenium-rich foods: Brazil nuts, eggs, sardines', 'Moderate iodine intake from iodized salt and seafood', 'Limit soy and cruciferous vegetables if hypothyroid', 'Regular thyroid function tests every 6-12 months', 'Maintain regular exercise routine'] },
+        asthma: { icon: '&#127788;', title: 'Asthma Care', summary: 'Know your triggers, keep inhaler handy, and strengthen your lungs.',
+            tips: ['Identify and avoid your triggers', 'Keep rescue inhaler accessible at all times', 'Warm up properly before exercise', 'Maintain a clean, dust-free living environment', 'Anti-inflammatory foods: ginger, turmeric, leafy greens', 'Breathing exercises can improve lung capacity'] },
+        arthritis: { icon: '&#129460;', title: 'Arthritis Management', summary: 'Anti-inflammatory diet and low-impact exercise reduce pain and stiffness.',
+            tips: ['Anti-inflammatory diet: omega-3 fatty acids, turmeric, ginger', 'Low-impact exercises: swimming, cycling, yoga', 'Maintain a healthy weight to reduce joint stress', 'Apply hot/cold therapy for pain relief', 'Gentle stretching daily to maintain flexibility', 'Consider supplements: glucosamine, vitamin D'] },
+        pcos: { icon: '&#127800;', title: 'PCOS Management', summary: 'Hormonal balance through diet, exercise, and stress management.',
+            tips: ['Focus on low GI, anti-inflammatory foods', 'Regular exercise helps regulate hormones (30 min/day)', 'Maintain healthy weight - even 5% loss can help', 'Include spearmint tea - may help with hormonal balance', 'Limit processed foods and refined sugars', 'Manage stress - cortisol can worsen symptoms'] },
+        cholesterol: { icon: '&#129371;', title: 'Cholesterol Control', summary: 'Lower LDL with fiber, healthy fats, and regular exercise.',
+            tips: ['Increase soluble fiber: oats, beans, lentils, fruits', 'Include healthy fats: olive oil, avocados, nuts', 'Eat fatty fish 2-3 times per week for omega-3', 'Avoid trans fats and limit saturated fats', 'Exercise at least 30 minutes most days', 'Consider plant sterols/stanols fortified foods'] },
+        obesity: { icon: '&#9878;', title: 'Obesity Management', summary: 'Structured weight loss with diet, exercise, and professional guidance.',
+            tips: ['Set realistic weight loss goals: 0.5-1 kg per week', 'Track your meals using a food diary or app', 'Reduce portion sizes and eat mindfully', 'Cut out sugary beverages and processed junk food', 'Walk at least 30 minutes daily and build up gradually', 'Consult a nutritionist for a structured meal plan'] },
+        anemia: { icon: '&#129656;', title: 'Anemia Care', summary: 'Boost iron and B12 levels through diet and supplements.',
+            tips: ['Eat iron-rich foods: spinach, lentils, red meat, beans', 'Pair iron foods with Vitamin C for better absorption', 'Avoid tea/coffee with meals as they block iron absorption', 'Include folate-rich foods: leafy greens, citrus, fortified cereals', 'Get Vitamin B12 from eggs, dairy, or supplements if vegan', 'Regular blood tests to monitor hemoglobin levels'] },
+        vitamin_d_deficiency: { icon: '&#9728;', title: 'Vitamin D Deficiency', summary: 'Morning sunlight, supplements, and vitamin D-rich foods.',
+            tips: ['Get 15-20 minutes of morning sunlight daily', 'Eat Vitamin D rich foods: fatty fish, egg yolks, fortified milk', 'Take Vitamin D3 supplements as prescribed by your doctor', 'Include calcium-rich foods for better bone health', 'Get Vitamin D levels tested every 6 months', 'Maintain regular outdoor physical activity'] },
+        kidney_disease: { icon: '&#129516;', title: 'Kidney Health', severe: true, summary: 'Limit sodium, potassium, and protein as advised. Stay hydrated.',
+            tips: ['Limit sodium, potassium, and phosphorus intake', "Stay well hydrated but follow doctor's fluid recommendations", 'Control blood sugar and blood pressure strictly', 'Reduce protein intake as advised by your nephrologist', 'Avoid NSAIDs and over-the-counter painkillers', 'Regular kidney function tests (creatinine, GFR)'] },
+        liver_disease: { icon: '&#129516;', title: 'Liver Health', severe: true, summary: 'Avoid alcohol, reduce fats, and support liver with antioxidants.',
+            tips: ['Completely avoid alcohol', 'Eat a balanced diet low in saturated fats and sugar', 'Maintain a healthy weight to prevent fatty liver', 'Avoid unnecessary medications and supplements', 'Include antioxidant-rich foods: berries, green tea, turmeric', 'Get regular liver function tests (LFT)'] },
+        depression: { icon: '&#128156;', title: 'Mental Health Support', summary: 'Exercise, sleep, social connection, and professional support help recovery.',
+            tips: ['Exercise regularly — even 20 min walks boost mood significantly', 'Maintain a consistent sleep schedule (7-9 hours)', 'Stay socially connected — talk to friends, family, or a therapist', 'Practice mindfulness, meditation, or deep breathing daily', 'Eat mood-boosting foods: omega-3, nuts, dark chocolate, bananas', 'Seek professional help — therapy and medication are effective treatments'] },
+        migraine: { icon: '&#129504;', title: 'Migraine Management', summary: 'Identify triggers, maintain routines, and stay hydrated.',
+            tips: ['Identify and avoid your triggers (stress, certain foods, bright lights)', 'Maintain regular sleep and meal schedules', 'Stay hydrated — dehydration is a common trigger', 'Limit caffeine to 1-2 cups/day; avoid sudden withdrawal', 'Practice stress management: yoga, meditation, deep breathing', 'Keep a headache diary to track patterns and triggers'] },
+        back_pain: { icon: '&#129468;', title: 'Back Pain Management', summary: 'Posture correction, core strengthening, and ergonomic setup.',
+            tips: ['Maintain good posture while sitting and standing', 'Strengthen core muscles with planks, bridges, and stretches', 'Take breaks every 30-45 minutes if sitting for long hours', 'Use ergonomic chair and keep monitor at eye level', 'Sleep on a firm mattress; side sleeping with pillow between knees helps', 'Avoid lifting heavy objects with a bent back — use your legs'] },
+        sleep_apnea: { icon: '&#128564;', title: 'Sleep Apnea Care', summary: 'Weight loss, side sleeping, and CPAP therapy are most effective.',
+            tips: ['Lose weight if overweight — even 10% loss can improve symptoms', 'Sleep on your side instead of your back', 'Avoid alcohol and sedatives before bedtime', 'Use CPAP machine as prescribed by your doctor', 'Keep a consistent sleep schedule', 'Elevate the head of your bed slightly'] },
+        ibs: { icon: '&#129473;', title: 'Digestive Health (IBS)', summary: 'Food diary, fiber, probiotics, and stress management.',
+            tips: ['Identify trigger foods and maintain a food diary', 'Eat smaller, more frequent meals instead of large ones', 'Increase fiber gradually: oats, fruits, vegetables', 'Stay hydrated — drink 8-10 glasses of water daily', 'Manage stress — it directly affects gut health', 'Consider probiotics (yogurt, kefir) for gut flora balance'] },
+        skin_issues: { icon: '&#129530;', title: 'Skin Health', summary: 'Hydration, antioxidants, and managing diet triggers improve skin.',
+            tips: ['Drink plenty of water for hydration', 'Eat antioxidant-rich foods: berries, tomatoes, green vegetables', 'Include zinc and Vitamin E: nuts, seeds, whole grains', 'Avoid excess dairy and sugar — they can trigger breakouts', 'Use gentle, fragrance-free skincare products', 'Manage stress as it worsens acne and eczema flare-ups'] },
+        osteoporosis: { icon: '&#129460;', title: 'Osteoporosis Care', summary: 'Calcium, Vitamin D, and weight-bearing exercises strengthen bones.',
+            tips: ['Increase calcium intake: milk, yogurt, cheese, leafy greens', 'Ensure adequate Vitamin D through sunlight and supplements', 'Weight-bearing exercises: walking, jogging, dancing, stair climbing', 'Avoid smoking and excessive alcohol — they weaken bones', 'Limit caffeine to 2-3 cups/day', 'Get a bone density (DEXA) scan regularly after age 50'] },
+        cancer: { icon: '&#127973;', title: 'Cancer Support', severe: true, summary: 'Nutrition, immunity, and mental health support during treatment.',
+            tips: ["Follow your oncologist's treatment plan strictly", 'Eat a nutrient-dense, anti-inflammatory diet', 'Include antioxidant-rich foods: berries, turmeric, green tea, broccoli', 'Stay physically active as tolerated — even light walking helps', 'Prioritize mental health — seek counseling or support groups', 'Stay hydrated and get adequate rest during treatment'] },
+        stroke: { icon: '&#129728;', title: 'Stroke Prevention', severe: true, summary: 'BP control, medication adherence, and heart-healthy diet are key.',
+            tips: ['Control blood pressure — the #1 risk factor for stroke', 'Take prescribed blood thinners or medications consistently', 'Follow a low-sodium, heart-healthy diet (DASH or Mediterranean)', 'Exercise regularly as cleared by your doctor', 'Quit smoking and limit alcohol completely', 'Monitor cholesterol and blood sugar levels regularly'] },
+        epilepsy: { icon: '&#129504;', title: 'Epilepsy Management', severe: true, summary: 'Medication adherence, sleep, and trigger avoidance prevent seizures.',
+            tips: ['Take anti-seizure medications on time, never skip doses', 'Get 7-9 hours of sleep — sleep deprivation triggers seizures', 'Avoid excessive alcohol and recreational drugs', 'Manage stress through relaxation techniques', 'Wear a medical ID bracelet for emergencies', 'Keep a seizure diary to track triggers and patterns'] },
+        allergic_rhinitis: { icon: '&#129319;', title: 'Allergic Rhinitis Care', summary: 'Identify allergens, use air purifiers, and try saline rinses.',
+            tips: ['Identify allergens: pollen, dust, pet dander, mold', 'Keep windows closed during high pollen seasons', 'Use air purifiers and wash bedding weekly in hot water', 'Rinse nasal passages with saline solution', 'Anti-inflammatory foods: turmeric, ginger, local honey', 'Consult an allergist for immunotherapy if symptoms are severe'] }
+    };
+    return data[condition] || null;
+}
+
+function buildGoalAdvice(goal) {
+    const goals = {
+        lose_weight: {
+            title: '&#9878; Goal: Lose Weight',
+            cls: 'diet',
+            tips: [
+                'Create a 500 kcal daily deficit for steady 0.5 kg/week loss',
+                'Prioritize protein (chicken, eggs, paneer, lentils) to preserve muscle',
+                'Replace refined carbs with whole grains, millets, and vegetables',
+                'Practice portion control — use smaller plates and eat slowly',
+                'Avoid liquid calories: sodas, juices, sugary coffee drinks',
+                'Walk 10,000 steps daily and add 3 strength sessions per week'
+            ]
+        },
+        gain_weight: {
+            title: '&#127860; Goal: Gain Weight',
+            cls: 'diet',
+            tips: [
+                'Eat 400-500 extra calories daily with nutrient-dense foods',
+                'Have 5-6 meals per day instead of 3 large ones',
+                'Include calorie-dense foods: nuts, peanut butter, cheese, ghee, avocado',
+                'Add protein shakes with banana, oats, and milk between meals',
+                'Do strength training 4x/week to build muscle, not just fat',
+                'Track your weight weekly and adjust calories accordingly'
+            ]
+        },
+        build_muscle: {
+            title: '&#128170; Goal: Build Muscle',
+            cls: 'exercise',
+            tips: [
+                'Consume 1.6-2.2g protein per kg of body weight daily',
+                'Follow progressive overload — increase weight/reps each week',
+                'Train each muscle group 2x per week for optimal growth',
+                'Get 7-9 hours of sleep — muscles recover and grow during sleep',
+                'Eat a protein-rich meal within 2 hours of training',
+                'Stay consistent — visible results take 8-12 weeks'
+            ]
+        },
+        improve_stamina: {
+            title: '&#127939; Goal: Improve Stamina',
+            cls: 'exercise',
+            tips: [
+                'Start with brisk walking, gradually progress to jogging/running',
+                'Try interval training: alternate fast and slow paces',
+                'Increase workout duration by 10% each week',
+                'Include swimming, cycling, or skipping rope for variety',
+                'Eat complex carbs (oats, sweet potato) before workouts for energy',
+                'Stay hydrated and practice deep breathing exercises'
+            ]
+        },
+        better_sleep: {
+            title: '&#128164; Goal: Better Sleep',
+            cls: 'lifestyle',
+            tips: [
+                'Set a fixed bedtime and wake time — even on weekends',
+                'Create a dark, cool (18-20°C), quiet sleeping environment',
+                'Stop screen time 1 hour before bed — use night mode on devices',
+                'Avoid caffeine after 2 PM and heavy meals before bed',
+                'Try a bedtime routine: warm shower, reading, or meditation',
+                'Exercise regularly but not within 3 hours of bedtime'
+            ]
+        },
+        reduce_stress: {
+            title: '&#128524; Goal: Reduce Stress',
+            cls: 'lifestyle',
+            tips: [
+                'Practice 10 minutes of daily meditation or deep breathing',
+                'Exercise regularly — it reduces cortisol and boosts endorphins',
+                'Take short breaks every 45-60 minutes during work',
+                'Limit news and social media consumption',
+                'Spend time in nature — even 20 minutes outdoors helps',
+                'Talk to someone you trust or consider professional counseling',
+                'Try journaling to process thoughts and emotions'
+            ]
+        },
+        eat_healthier: {
+            title: '&#129367; Goal: Eat Healthier',
+            cls: 'diet',
+            tips: [
+                'Follow the plate rule: 50% vegetables, 25% protein, 25% whole grains',
+                'Cook more meals at home — you control ingredients and portions',
+                'Include 5 servings of fruits and vegetables daily',
+                'Replace processed snacks with nuts, seeds, and fruits',
+                'Read nutrition labels — watch for hidden sugars and sodium',
+                'Plan and prep meals for the week to avoid unhealthy choices'
+            ]
+        },
+        boost_immunity: {
+            title: '&#128170; Goal: Boost Immunity',
+            cls: 'diet',
+            tips: [
+                'Eat Vitamin C rich foods daily: amla, oranges, guava, bell peppers',
+                'Include zinc sources: pumpkin seeds, chickpeas, nuts, whole grains',
+                'Consume probiotics: yogurt, kefir, fermented foods',
+                'Get adequate Vitamin D through sunlight and diet',
+                'Sleep 7-9 hours — poor sleep weakens immune response',
+                'Exercise moderately — intense overtraining can suppress immunity',
+                'Manage stress as chronic stress lowers immune function'
+            ]
+        },
+        improve_flexibility: {
+            title: '&#129336; Goal: Improve Flexibility',
+            cls: 'exercise',
+            tips: [
+                'Stretch daily for at least 10-15 minutes, especially after exercise',
+                'Try yoga 3-4 times per week — start with beginner poses',
+                'Hold each stretch for 20-30 seconds without bouncing',
+                'Focus on tight areas: hamstrings, hip flexors, shoulders, lower back',
+                'Warm up before stretching to prevent injury',
+                'Consider foam rolling for muscle tightness and recovery'
+            ]
+        },
+        quit_smoking: {
+            title: '&#128683; Goal: Quit Smoking',
+            cls: 'warning',
+            tips: [
+                'Set a quit date and tell friends/family for accountability',
+                'Consider nicotine replacement: patches, gums, or lozenges',
+                'Identify triggers (stress, coffee, alcohol) and plan alternatives',
+                'Keep your hands busy — try a stress ball or healthy snacks',
+                'Exercise when cravings hit — even a 5-minute walk helps',
+                'Celebrate milestones: health benefits start within 20 minutes of quitting',
+                'Consult a doctor for prescription medications if needed'
+            ]
+        },
+        manage_diabetes: {
+            title: '&#127852; Goal: Manage Diabetes',
+            cls: 'medical',
+            tips: [
+                'Monitor blood sugar levels at regular intervals',
+                'Choose low GI foods: whole grains, legumes, non-starchy vegetables',
+                'Eat at consistent times and never skip meals',
+                'Exercise 30 minutes daily — walking after meals helps control sugar',
+                'Limit refined sugar, white rice, maida, and packaged foods',
+                'Stay hydrated and manage stress for better sugar control'
+            ]
+        },
+        lower_bp: {
+            title: '&#128147; Goal: Lower Blood Pressure',
+            cls: 'medical',
+            tips: [
+                'Reduce salt intake to less than 5g (1 teaspoon) per day',
+                'Follow DASH diet: fruits, vegetables, whole grains, low-fat dairy',
+                'Exercise 30 minutes most days — brisk walking is effective',
+                'Maintain a healthy weight — even 5 kg loss can reduce BP',
+                'Limit alcohol and quit smoking',
+                'Practice relaxation: deep breathing, meditation, or yoga',
+                'Monitor BP at home and keep a log for your doctor'
+            ]
+        },
+        improve_digestion: {
+            title: '&#129473; Goal: Improve Digestion',
+            cls: 'lifestyle',
+            tips: [
+                'Eat fiber-rich foods: fruits, vegetables, whole grains, legumes',
+                'Drink 8-10 glasses of water daily',
+                'Eat slowly and chew food thoroughly',
+                'Include probiotics: yogurt, buttermilk, fermented vegetables',
+                'Avoid overeating — eat smaller, frequent meals',
+                'Limit fried, spicy, and processed foods',
+                'Walk for 10-15 minutes after meals to aid digestion'
+            ]
+        },
+        better_skin: {
+            title: '&#10024; Goal: Better Skin & Hair',
+            cls: 'lifestyle',
+            tips: [
+                'Drink at least 8-10 glasses of water daily for hydration',
+                'Eat Vitamin C (citrus, amla), Vitamin E (nuts, seeds), and biotin (eggs, nuts)',
+                'Include omega-3 fatty acids: walnuts, flaxseeds, fatty fish',
+                'Get 7-8 hours of sleep — skin repairs overnight',
+                'Limit sugar and dairy which can trigger breakouts',
+                'Protect skin from sun — use sunscreen daily',
+                'Manage stress as it can cause acne, hair loss, and dull skin'
+            ]
+        },
+        increase_energy: {
+            title: '&#9889; Goal: Increase Energy',
+            cls: 'exercise',
+            tips: [
+                'Don\'t skip breakfast — eat a balanced meal with protein and complex carbs',
+                'Stay hydrated — even mild dehydration causes fatigue',
+                'Get 7-9 hours of quality sleep consistently',
+                'Exercise regularly — it boosts energy levels throughout the day',
+                'Avoid energy crashes: eat small frequent meals instead of large ones',
+                'Limit caffeine to mornings and reduce sugar intake',
+                'Check for deficiencies: iron, B12, Vitamin D, thyroid'
+            ]
+        },
+        improve_posture: {
+            title: '&#129497; Goal: Improve Posture',
+            cls: 'exercise',
+            tips: [
+                'Set up an ergonomic workstation: screen at eye level, feet flat on floor',
+                'Take a break every 30 minutes to stand, stretch, and walk',
+                'Strengthen core and back muscles: planks, bridges, rows',
+                'Practice wall angels and chin tucks daily',
+                'Be mindful of phone posture — avoid hunching over your device',
+                'Consider yoga or Pilates for overall postural improvement',
+                'Sleep on your back or side with proper pillow support'
+            ]
+        }
+    };
+
+    const g = goals[goal];
+    if (!g) return '';
+    return `
+    <div class="rec-card ${g.cls}">
+        <h4>${g.title}</h4>
+        <ul>${g.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+    </div>`;
+}
+
+function determineDosha(data, bmi) {
+    let vata = 0, pitta = 0, kapha = 0;
+
+    // Body frame / BMI
+    if (bmi < 18.5) { vata += 3; }
+    else if (bmi >= 18.5 && bmi < 25) { pitta += 3; }
+    else { kapha += 3; }
+
+    // Age influence
+    if (data.age < 16) { kapha += 2; }
+    else if (data.age < 50) { pitta += 2; }
+    else { vata += 2; }
+
+    // Activity
+    if (data.activity === 'sedentary') { kapha += 2; }
+    else if (data.activity === 'active' || data.activity === 'athlete') { pitta += 2; }
+    else { vata += 1; pitta += 1; }
+
+    // Sleep
+    if (data.sleep < 6) { vata += 2; }
+    else if (data.sleep > 9) { kapha += 2; }
+    else { pitta += 1; }
+
+    // Weight tendency
+    const idealW = data.gender === 'female' ? 45.5 + 2.3 * Math.max(0, (data.height / 2.54) - 60) : 50 + 2.3 * Math.max(0, (data.height / 2.54) - 60);
+    const diff = data.weight - idealW;
+    if (diff < -5) { vata += 2; }
+    else if (diff > 10) { kapha += 2; }
+    else { pitta += 1; }
+
+    // Conditions influence
+    if (data.conditions.includes('anxiety') || data.conditions.includes('depression') || data.conditions.includes('insomnia')) vata += 1;
+    if (data.conditions.includes('hypertension') || data.conditions.includes('skin_issues') || data.conditions.includes('ibs')) pitta += 1;
+    if (data.conditions.includes('obesity') || data.conditions.includes('cholesterol') || data.conditions.includes('diabetes')) kapha += 1;
+
+    const total = vata + pitta + kapha;
+    return {
+        vata: Math.round((vata / total) * 100),
+        pitta: Math.round((pitta / total) * 100),
+        kapha: Math.round((kapha / total) * 100),
+        dominant: vata >= pitta && vata >= kapha ? 'vata' : pitta >= kapha ? 'pitta' : 'kapha'
+    };
+}
+
+function buildAyurvedicSection(data, bmi) {
+    const dosha = determineDosha(data, bmi);
+    let html = '';
+
+    html += `<div class="card">
+        <div class="card-title">&#127807; Ayurvedic Health Analysis (Prakriti)</div>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem;">
+            Based on your body type, age, lifestyle, and health data, here is your estimated Ayurvedic constitution (Prakriti).
+            In Ayurveda, health is maintained by balancing three doshas — Vata, Pitta, and Kapha.
+        </p>
+        <div class="dosha-grid">
+            <div class="dosha-card ${dosha.dominant === 'vata' ? 'active-dosha' : ''}">
+                <div class="dosha-icon">&#127744;</div>
+                <div class="dosha-name">Vata</div>
+                <div class="dosha-element">Air + Space</div>
+                <div class="dosha-pct">${dosha.vata}%</div>
+            </div>
+            <div class="dosha-card ${dosha.dominant === 'pitta' ? 'active-dosha' : ''}">
+                <div class="dosha-icon">&#128293;</div>
+                <div class="dosha-name">Pitta</div>
+                <div class="dosha-element">Fire + Water</div>
+                <div class="dosha-pct">${dosha.pitta}%</div>
+            </div>
+            <div class="dosha-card ${dosha.dominant === 'kapha' ? 'active-dosha' : ''}">
+                <div class="dosha-icon">&#127754;</div>
+                <div class="dosha-name">Kapha</div>
+                <div class="dosha-element">Earth + Water</div>
+                <div class="dosha-pct">${dosha.kapha}%</div>
+            </div>
+        </div>
+        <div class="rec-grid">`;
+
+    // Dosha-specific diet & lifestyle
+    const doshaAdvice = {
+        vata: {
+            title: '&#127744; Vata-Dominant Constitution',
+            desc: 'Vata types tend to be thin, energetic, creative, but prone to anxiety, dry skin, constipation, and irregular digestion.',
+            diet: [
+                '<strong>Favor:</strong> Warm, cooked, oily, and grounding foods — ghee, soups, stews, warm milk',
+                '<strong>Grains:</strong> Rice, wheat, oats (cooked) — avoid dry cereals and crackers',
+                '<strong>Spices:</strong> Ginger, cumin, cinnamon, cardamom, ajwain, hing (asafoetida)',
+                '<strong>Fruits:</strong> Sweet fruits — bananas, mangoes, grapes, cooked apples',
+                '<strong>Avoid:</strong> Raw salads, cold drinks, dried fruits, beans (except moong dal)',
+                '<strong>Beverages:</strong> Warm water, ginger tea, ashwagandha milk'
+            ],
+            lifestyle: [
+                'Follow a regular daily routine (Dinacharya) — eat and sleep at fixed times',
+                'Oil massage (Abhyanga) with warm sesame oil before bathing',
+                'Practice gentle yoga: Surya Namaskar, Bhujangasana, Shavasana',
+                'Pranayama: Anulom Vilom (alternate nostril breathing) to calm mind',
+                'Avoid excessive travel, fasting, and staying up late',
+                'Meditation and grounding practices to reduce anxiety'
+            ]
+        },
+        pitta: {
+            title: '&#128293; Pitta-Dominant Constitution',
+            desc: 'Pitta types tend to have a medium build, strong digestion, sharp intellect, but are prone to acidity, inflammation, skin rashes, and anger.',
+            diet: [
+                '<strong>Favor:</strong> Cool, sweet, bitter foods — milk, ghee, coconut, cucumber',
+                '<strong>Grains:</strong> Basmati rice, wheat, barley, oats — avoid corn and millet',
+                '<strong>Spices:</strong> Coriander, fennel, turmeric, cardamom — avoid chili, mustard',
+                '<strong>Fruits:</strong> Sweet fruits — pomegranate, melon, coconut, sweet grapes',
+                '<strong>Avoid:</strong> Spicy, sour, fermented, fried foods, vinegar, tomatoes, citrus excess',
+                '<strong>Beverages:</strong> Cool water, mint tea, coconut water, aloe vera juice'
+            ],
+            lifestyle: [
+                'Avoid excessive sun exposure and heat — prefer cool environments',
+                'Oil massage (Abhyanga) with coconut oil or sunflower oil',
+                'Practice cooling yoga: Sheetali pranayama, Chandra Namaskar',
+                'Moonlight walks and spending time near water bodies',
+                'Avoid competitive and intense exercise during midday heat',
+                'Practice patience and compassion meditation'
+            ]
+        },
+        kapha: {
+            title: '&#127754; Kapha-Dominant Constitution',
+            desc: 'Kapha types tend to have a sturdy build, calm temperament, but are prone to weight gain, sluggishness, congestion, and water retention.',
+            diet: [
+                '<strong>Favor:</strong> Light, warm, dry, spicy foods — reduce oil, sugar, dairy',
+                '<strong>Grains:</strong> Millets (bajra, jowar, ragi), barley, quinoa — reduce rice and wheat',
+                '<strong>Spices:</strong> Black pepper, ginger, turmeric, mustard, cinnamon, trikatu',
+                '<strong>Fruits:</strong> Apples, pears, pomegranate, berries — avoid bananas, dates',
+                '<strong>Avoid:</strong> Sweet, heavy, oily, cold foods, ice cream, cheese, fried items',
+                '<strong>Beverages:</strong> Warm water with honey & lemon, ginger tea, triphala water'
+            ],
+            lifestyle: [
+                'Wake up early (before 6 AM) — avoid sleeping late or daytime sleep',
+                'Vigorous exercise: brisk walking, running, Surya Namaskar, cycling',
+                'Dry powder massage (Udvartana) with herbal powders instead of oil massage',
+                'Pranayama: Kapalbhati and Bhastrika to boost metabolism',
+                'Fasting once a week (light fruit/liquid diet) to detox',
+                'Stay active and avoid sedentary routine — movement is medicine for Kapha'
+            ]
+        }
+    };
+
+    const da = doshaAdvice[dosha.dominant];
+    html += `
+        <div class="rec-card ayurveda">
+            <h4>${da.title}</h4>
+            <p style="margin-bottom:0.5rem;">${da.desc}</p>
+        </div>
+        <div class="rec-card ayurveda">
+            <h4>&#127859; Ayurvedic Diet for ${dosha.dominant.charAt(0).toUpperCase() + dosha.dominant.slice(1)} Type</h4>
+            <ul>${da.diet.map(t => `<li>${t}</li>`).join('')}</ul>
+        </div>
+        <div class="rec-card ayurveda">
+            <h4>&#128715; Ayurvedic Lifestyle (Dinacharya)</h4>
+            <ul>${da.lifestyle.map(t => `<li>${t}</li>`).join('')}</ul>
+        </div>`;
+
+    // Ayurvedic Daily Routine
+    html += `
+        <div class="rec-card ayurveda">
+            <h4>&#127773; Ayurvedic Daily Routine (Dinacharya)</h4>
+            <table class="meal-table">
+                <tr><th>Time</th><th>Activity</th><th>Details</th></tr>
+                <tr><td><strong>5:30-6:00 AM</strong></td><td>Wake Up</td><td>Wake before sunrise (Brahma Muhurta). Drink warm water with lemon.</td></tr>
+                <tr><td><strong>6:00-6:30 AM</strong></td><td>Cleansing</td><td>Oil pulling (Gandusha) with sesame/coconut oil. Tongue scraping (Jihwa Prakshalana).</td></tr>
+                <tr><td><strong>6:30-7:00 AM</strong></td><td>Yoga & Pranayama</td><td>Surya Namaskar, stretching, and breathing exercises.</td></tr>
+                <tr><td><strong>7:30-8:00 AM</strong></td><td>Breakfast</td><td>Warm, light meal according to your dosha. Avoid cold cereals.</td></tr>
+                <tr><td><strong>12:00-1:00 PM</strong></td><td>Lunch (Main Meal)</td><td>Largest meal of the day — Agni (digestive fire) is strongest at noon.</td></tr>
+                <tr><td><strong>4:00-5:00 PM</strong></td><td>Light Snack</td><td>Herbal tea, fruits, or soaked nuts. Avoid heavy snacks.</td></tr>
+                <tr><td><strong>6:30-7:30 PM</strong></td><td>Dinner (Light)</td><td>Light, easy-to-digest meal. Eat at least 2 hours before bed.</td></tr>
+                <tr><td><strong>9:00 PM</strong></td><td>Wind Down</td><td>Warm milk with turmeric & nutmeg. Light reading or meditation.</td></tr>
+                <tr><td><strong>10:00 PM</strong></td><td>Sleep</td><td>Sleep before 10 PM for optimal rest and rejuvenation.</td></tr>
+            </table>
+        </div>`;
+
+    // Ayurvedic Herbs & Remedies
+    html += `
+        <div class="rec-card ayurveda">
+            <h4>&#127807; Recommended Ayurvedic Herbs & Remedies</h4>
+            <table class="meal-table">
+                <tr><th>Herb / Remedy</th><th>Benefits</th><th>How to Use</th></tr>
+                <tr><td><strong>Ashwagandha</strong></td><td>Stress relief, energy, immunity, strength</td><td>1/2 tsp powder in warm milk at night</td></tr>
+                <tr><td><strong>Triphala</strong></td><td>Digestion, detox, constipation, eye health</td><td>1 tsp with warm water before bed</td></tr>
+                <tr><td><strong>Turmeric (Haldi)</strong></td><td>Anti-inflammatory, immunity, skin health</td><td>Golden milk: turmeric + black pepper in warm milk</td></tr>
+                <tr><td><strong>Tulsi (Holy Basil)</strong></td><td>Immunity, respiratory health, stress relief</td><td>Tulsi tea: boil 5-6 leaves in water, drink daily</td></tr>
+                <tr><td><strong>Amla (Indian Gooseberry)</strong></td><td>Vitamin C, hair health, immunity, digestion</td><td>1 fresh amla daily or amla juice in morning</td></tr>
+                <tr><td><strong>Brahmi</strong></td><td>Memory, focus, anxiety, sleep improvement</td><td>1/2 tsp powder in warm water or milk</td></tr>
+                <tr><td><strong>Giloy (Guduchi)</strong></td><td>Immunity booster, fever, detox, diabetes</td><td>Giloy juice 15-20 ml on empty stomach</td></tr>
+                <tr><td><strong>Shatavari</strong></td><td>Hormonal balance, fertility, digestion</td><td>1/2 tsp powder in warm milk</td></tr>
+                <tr><td><strong>Mulethi (Licorice)</strong></td><td>Cough, sore throat, digestion, skin glow</td><td>Chew small stick or boil in tea</td></tr>
+                <tr><td><strong>Trikatu</strong></td><td>Metabolism, weight loss, congestion, appetite</td><td>1/4 tsp with honey before meals</td></tr>
+            </table>
+        </div>`;
+
+    // Condition-specific Ayurvedic remedies
+    if (data.conditions.length > 0) {
+        html += `<div class="rec-card ayurveda">
+            <h4>&#127810; Ayurvedic Remedies for Your Conditions</h4>`;
+        data.conditions.forEach(c => {
+            const remedy = getAyurvedicRemedy(c);
+            if (remedy) {
+                html += `<p style="margin-top:0.8rem;"><strong>${remedy.title}:</strong></p><ul>${remedy.tips.map(t => `<li>${t}</li>`).join('')}</ul>`;
+                if (remedy.warning) {
+                    html += `<div style="margin-top:0.4rem;padding:0.5rem;background:#fef2f2;border-radius:6px;font-size:0.78rem;color:#991b1b;border:1px solid #fecaca;"><strong>&#9888; Drug Interaction Warning:</strong> ${remedy.warning}</div>`;
+                }
+            }
+        });
+        html += `</div>`;
+    }
+
+    // GAP 7: Pregnancy/breastfeeding Ayurvedic warning
+    if (data.pregnancy === 'pregnant' || data.pregnancy === 'breastfeeding') {
+        html += `<div class="rec-card ayurveda" style="border-color:#ef4444;background:#fef2f2;">
+            <h4 style="color:#991b1b;">&#9888; Pregnancy / Breastfeeding Warning</h4>
+            <p style="color:#991b1b;font-size:0.88rem;">&#9888; Many Ayurvedic herbs (Ashwagandha, Shatavari, Triphala, Guggulu, Aloe vera) may be contraindicated during pregnancy. Consult an Ayurvedic doctor before using ANY herbal remedy.</p>
+        </div>`;
+    }
+
+    // Ayurvedic home remedies
+    html += `
+        <div class="rec-card ayurveda">
+            <h4>&#127858; Ayurvedic Kitchen Remedies (Gharelu Nuskhe)</h4>
+            <ul>
+                <li><strong>For Digestion:</strong> Jeera (cumin) water — boil 1 tsp cumin in water, drink warm after meals</li>
+                <li><strong>For Immunity:</strong> Chyawanprash — 1 tsp daily in morning with warm milk</li>
+                <li><strong>For Cold/Cough:</strong> Kadha — boil tulsi, ginger, black pepper, clove, cinnamon in water with jaggery</li>
+                <li><strong>For Acidity:</strong> Saunf (fennel) water — soak 1 tsp fennel overnight, drink in morning</li>
+                <li><strong>For Joint Pain:</strong> Warm sesame oil massage on affected joints daily</li>
+                <li><strong>For Better Sleep:</strong> Warm milk with a pinch of nutmeg (jaiphal) and turmeric</li>
+                <li><strong>For Skin Glow:</strong> Haldi + besan + curd face pack weekly</li>
+                <li><strong>For Weight Loss:</strong> Warm water with honey + lemon on empty stomach</li>
+                <li><strong>For Hair Health:</strong> Bhringraj or coconut oil head massage twice a week</li>
+                <li><strong>For Detox:</strong> Start mornings with warm water + 1 tsp Triphala powder</li>
+            </ul>
+        </div>`;
+
+    html += `</div></div>`;
+    return html;
+}
+
+function getAyurvedicRemedy(condition) {
+    const remedies = {
+        diabetes: {
+            title: 'Diabetes (Madhumeha)',
+            warning: 'Karela (bitter gourd) can cause hypoglycemia when taken with insulin or diabetes medications. Monitor blood sugar closely and consult your doctor.',
+            tips: [
+                'Karela (bitter gourd) juice — 30ml on empty stomach daily',
+                'Methi (fenugreek) seeds — soak 1 tsp overnight, drink water & chew seeds in morning',
+                'Jamun (Indian blackberry) seed powder — 1/2 tsp with water twice daily',
+                'Vijaysar wood tumbler — drink water stored overnight in vijaysar glass',
+                'Turmeric + amla juice combination helps regulate blood sugar',
+                'Avoid sweet, heavy, and oily foods; favor bitter and astringent tastes'
+            ]
+        },
+        hypertension: {
+            title: 'Hypertension (Rakta Vata)',
+            warning: 'Sarpagandha (Rauwolfia) has severe side effects including depression, nasal congestion, and excessive BP drop. Never use without medical supervision.',
+            tips: [
+                'Sarpagandha (Rauwolfia) — traditional Ayurvedic BP remedy (consult Vaidya)',
+                'Arjuna bark tea — 1/2 tsp Arjun chhal powder boiled in water, drink daily',
+                'Garlic (Lahsun) — eat 2 raw cloves on empty stomach daily',
+                'Ashwagandha — reduces stress-related BP elevation',
+                'Practice Sheetali pranayama (cooling breath) daily',
+                'Reduce salt; use rock salt (sendha namak) instead of regular salt'
+            ]
+        },
+        heart_disease: {
+            title: 'Heart Disease (Hridaya Roga)',
+            tips: [
+                'Arjuna bark (Terminalia arjuna) — the foremost Ayurvedic heart tonic',
+                'Garlic + honey combination — strengthens heart muscles',
+                'Triphala for cholesterol management and detoxification',
+                'Brahmi and Shankhpushpi for stress-related heart issues',
+                'Avoid heavy, fried, and tamasic foods',
+                'Practice gentle pranayama: Anulom Vilom and Bhramari'
+            ]
+        },
+        thyroid: {
+            title: 'Thyroid (Galaganda)',
+            warning: 'Ashwagandha interacts with thyroid medications (levothyroxine) and can cause thyroid hormone levels to fluctuate. Consult your endocrinologist before use.',
+            tips: [
+                'Kanchanar Guggulu — classical Ayurvedic remedy for thyroid disorders',
+                'Ashwagandha — supports thyroid function, especially hypothyroidism',
+                'Include iodine-rich foods and sea vegetables in moderate amounts',
+                'Jalaukavacharana (therapeutic procedures) as advised by Vaidya',
+                'Avoid excess soy, raw cruciferous vegetables',
+                'Neck exercises and Ujjayi pranayama stimulate thyroid'
+            ]
+        },
+        asthma: {
+            title: 'Asthma (Swasa Roga)',
+            tips: [
+                'Sitopaladi Churna — classical remedy for respiratory issues',
+                'Vasaka (Adhatoda) leaves tea for bronchial relief',
+                'Honey + black pepper + ginger — mix and take 1 tsp twice daily',
+                'Steam inhalation with ajwain (carom seeds) or eucalyptus',
+                'Pranayama: Anulom Vilom and Kapalbhati strengthen lungs',
+                'Avoid cold foods, dairy excess, and damp environments'
+            ]
+        },
+        arthritis: {
+            title: 'Arthritis (Sandhivata)',
+            tips: [
+                'Maharasnadi Kashayam or Rasnadi Guggulu (consult Vaidya)',
+                'Warm sesame oil or Mahanarayan oil massage on joints daily',
+                'Nirgundi (Vitex) leaves poultice for swollen joints',
+                'Shallaki (Boswellia) — powerful anti-inflammatory herb',
+                'Turmeric milk (Golden Milk) — 1/2 tsp turmeric in warm milk nightly',
+                'Hot water fomentation and gentle joint exercises'
+            ]
+        },
+        pcos: {
+            title: 'PCOS (Artava Dushti)',
+            tips: [
+                'Shatavari — supports female hormonal balance',
+                'Ashoka bark — regulates menstrual cycle',
+                'Kanchanar Guggulu — helps with cyst management',
+                'Aloe vera juice — 20ml on empty stomach for hormonal balance',
+                'Spearmint (Pudina) tea — may help reduce androgens',
+                'Yoga: Baddha Konasana, Supta Vajrasana for pelvic health'
+            ]
+        },
+        cholesterol: {
+            title: 'High Cholesterol (Meda Roga)',
+            tips: [
+                'Guggulu (Commiphora) — the primary Ayurvedic lipid-lowering herb',
+                'Garlic (Lahsun) — 2 cloves daily lower LDL cholesterol',
+                'Arjuna bark — cardioprotective and reduces cholesterol',
+                'Triphala — detoxes and supports healthy metabolism',
+                'Flaxseed (Alsi) — 1 tbsp ground seeds daily for omega-3',
+                'Avoid ghee excess, fried foods; favor mustard oil and olive oil'
+            ]
+        },
+        obesity: {
+            title: 'Obesity (Sthaulya)',
+            tips: [
+                'Triphala + warm water — drink at night for detox and metabolism',
+                'Trikatu (ginger + black pepper + pippali) — boosts Agni (digestive fire)',
+                'Honey + warm water + lemon on empty stomach',
+                'Medohar Guggulu — classical weight management formula (consult Vaidya)',
+                'Udvartana — dry herbal powder massage to reduce fat',
+                'Avoid daytime sleep, cold water, and excess sweet/salty foods'
+            ]
+        },
+        anemia: {
+            title: 'Anemia (Pandu Roga)',
+            tips: [
+                'Lohasava or Dhatri Loha — iron-rich Ayurvedic formulations',
+                'Amla (Indian gooseberry) — richest source of Vitamin C, enhances iron absorption',
+                'Pomegranate juice — builds blood naturally',
+                'Dates + milk — soak 2-3 dates in milk overnight, consume in morning',
+                'Moringa (Drumstick) leaves — rich in iron and folate',
+                'Punarnava — supports blood formation and removes toxins'
+            ]
+        },
+        vitamin_d_deficiency: {
+            title: 'Vitamin D Deficiency',
+            tips: [
+                'Morning sun exposure (Atapa Sevana) — 15-20 minutes before 9 AM',
+                'Ashwagandha strengthens bones and supports vitamin absorption',
+                'Sesame seeds (til) — rich in calcium, consume daily',
+                'Bala (Sida cordifolia) — strengthens bones and muscles',
+                'Warm sesame oil Abhyanga for bone and joint nourishment',
+                'Include ghee in diet — aids fat-soluble vitamin absorption'
+            ]
+        },
+        kidney_disease: {
+            title: 'Kidney Disease (Mutra Roga)',
+            tips: [
+                'Punarnava (Boerhavia diffusa) — the primary Ayurvedic kidney herb',
+                'Gokshura (Tribulus) — supports kidney function and urinary health',
+                'Varuna bark (Crataeva) — helps with kidney stones and urinary disorders',
+                'Drink adequate warm water throughout the day',
+                'Coriander seed water — soak overnight, drink in morning',
+                'Avoid excess protein, salt, and processed foods'
+            ]
+        },
+        liver_disease: {
+            title: 'Liver Disease (Yakrit Roga)',
+            tips: [
+                'Kutki (Picrorhiza) — the most potent Ayurvedic liver herb',
+                'Bhumyamalaki (Phyllanthus) — protects and rejuvenates liver',
+                'Kalmegh (Andrographis) — powerful hepatoprotective herb',
+                'Aloe vera juice — 20ml on empty stomach for liver detox',
+                'Avoid alcohol completely; reduce oily and spicy foods',
+                'Triphala at night for gentle liver detoxification'
+            ]
+        },
+        depression: {
+            title: 'Depression & Anxiety (Manas Roga)',
+            tips: [
+                'Ashwagandha — adaptogen that reduces cortisol and anxiety',
+                'Brahmi — calms the mind, improves mood and cognition',
+                'Shankhpushpi — traditional nervine tonic for mental clarity',
+                'Jatamansi (Spikenard) — calms Vata, promotes restful sleep',
+                'Nasya therapy — 2 drops of Anu Taila in nostrils for mental clarity',
+                'Yoga Nidra, Shavasana, and Bhramari pranayama for deep relaxation'
+            ]
+        },
+        migraine: {
+            title: 'Migraine (Ardhavabhedaka)',
+            tips: [
+                'Shirolepa — application of sandalwood + camphor paste on forehead',
+                'Nasya with Anu Taila or Shadbindu Taila — 2 drops in each nostril',
+                'Pathyadi Kashayam — classical decoction for headaches (consult Vaidya)',
+                'Apply paste of nutmeg (jaiphal) + water on forehead during attack',
+                'Coriander seed tea — boil 1 tsp in water, helps with pitta-type headaches',
+                'Avoid direct sun, fasting, excess screen time, and pitta-aggravating foods'
+            ]
+        },
+        back_pain: {
+            title: 'Back Pain (Kati Shoola)',
+            tips: [
+                'Kati Basti — warm medicated oil pool on lower back (Panchakarma therapy)',
+                'Mahanarayan oil or Dhanwantharam oil massage on affected area',
+                'Nirgundi oil for local application to reduce pain and inflammation',
+                'Yoga: Bhujangasana, Markatasana, Shalabhasana for back strength',
+                'Dashamoola Kashayam — anti-inflammatory decoction',
+                'Warm sesame oil massage followed by hot water fomentation'
+            ]
+        },
+        sleep_apnea: {
+            title: 'Sleep Apnea',
+            tips: [
+                'Weight management with Triphala and Trikatu to reduce Kapha',
+                'Vacha (Calamus) — traditional remedy for respiratory passages',
+                'Nasya with Anu Taila to clear nasal passages',
+                'Avoid Kapha-increasing foods at dinner: dairy, sweets, heavy foods',
+                'Pranayama: Kapalbhati and Bhastrika to strengthen respiratory system',
+                'Eat light dinner before 7 PM; avoid daytime sleeping'
+            ]
+        },
+        ibs: {
+            title: 'IBS / Digestive Issues (Grahani Roga)',
+            tips: [
+                'Takra (Buttermilk) with cumin and rock salt — best for digestion',
+                'Hingwashtak Churna — classical digestive formula with hing (asafoetida)',
+                'Kutaja (Holarrhena) — effective for diarrhea-dominant IBS',
+                'Bilva (Bael) fruit — supports intestinal health',
+                'Warm water with ginger throughout the day to kindle Agni',
+                'Eat freshly cooked food; avoid stale, cold, and processed foods'
+            ]
+        },
+        skin_issues: {
+            title: 'Skin Issues (Twak Roga)',
+            tips: [
+                'Neem (Nimba) — blood purifier, anti-bacterial, anti-fungal',
+                'Manjistha (Rubia cordifolia) — the best Ayurvedic blood purifier for skin',
+                'Khadira (Acacia) — classical remedy for chronic skin conditions',
+                'Kumkumadi Tailam — luxurious Ayurvedic face oil for glowing skin',
+                'Aloe vera gel application for cooling and healing skin',
+                'Avoid sour, spicy, fermented foods that aggravate Pitta and blood'
+            ]
+        },
+        osteoporosis: {
+            title: 'Osteoporosis (Asthi Kshaya)',
+            tips: [
+                'Laksha Guggulu — classical Ayurvedic bone-strengthening formula',
+                'Praval Pishti (Coral calcium) — Ayurvedic calcium supplement',
+                'Arjuna bark — strengthens bones along with heart',
+                'Warm sesame oil Abhyanga — nourishes Asthi Dhatu (bone tissue)',
+                'Bala (Sida cordifolia) for bone and muscle strength',
+                'Sesame seeds, milk, and ghee to nourish bone tissue daily'
+            ]
+        },
+        cancer: {
+            title: 'Cancer Support (Arbuda)',
+            warning: 'Ayurvedic herbs may interfere with chemotherapy and radiation. Never take herbal remedies during cancer treatment without oncologist approval.',
+            tips: [
+                'Ashwagandha — adaptogenic support during treatment',
+                'Turmeric (Curcumin) — potent anti-inflammatory and antioxidant',
+                'Tulsi and Giloy — immune-boosting herbs for overall vitality',
+                'Triphala — gentle detoxification and antioxidant support',
+                'Consult an integrative Ayurvedic oncologist for Rasayana therapy',
+                'Focus on Sattvic diet: fresh, organic, plant-based, easily digestible foods'
+            ]
+        },
+        stroke: {
+            title: 'Stroke Recovery (Pakshaghata)',
+            tips: [
+                'Ashwagandha and Bala — strengthen nervous system recovery',
+                'Panchakarma therapy: Abhyanga, Swedana, Nasya as prescribed',
+                'Brahmi and Shankhpushpi for brain and nerve regeneration',
+                'Dashamoola Kashayam — anti-inflammatory nerve support',
+                'Gentle yoga and pranayama as tolerated during recovery',
+                'Saraswatarishta — classical nerve tonic (consult Vaidya)'
+            ]
+        },
+        epilepsy: {
+            title: 'Epilepsy (Apasmara)',
+            tips: [
+                'Brahmi — primary Ayurvedic herb for neurological conditions',
+                'Jyotishmati (Celastrus) — traditional brain and nerve tonic',
+                'Vacha (Acacia calamus) — supports brain function and clarity',
+                'Shankhpushpi — calming nervine for seizure management',
+                'Panchagavya Ghrita — classical ghee preparation (consult Vaidya)',
+                'Strict routine, adequate sleep, and stress management essential'
+            ]
+        },
+        allergic_rhinitis: {
+            title: 'Allergic Rhinitis (Pratishyaya)',
+            tips: [
+                'Nasya with Anu Taila — 2 drops in each nostril every morning',
+                'Sitopaladi Churna + honey — for nasal congestion and sneezing',
+                'Haridra Khanda — classical Ayurvedic anti-allergy formulation',
+                'Turmeric milk daily to reduce allergic inflammation',
+                'Steam inhalation with eucalyptus or ajwain seeds',
+                'Avoid cold drinks, ice cream, curd at night, and Kapha-increasing foods'
+            ]
+        }
+    };
+
+    return remedies[condition] || null;
+}
+
+// ========== HEALTH AGENT ==========
+let agentOpen = false;
+let userData = null;
+
+function toggleAgent() {
+    agentOpen = !agentOpen;
+    const win = document.getElementById('agentWindow');
+    const fab = document.getElementById('agentFab');
+    if (agentOpen) {
+        win.classList.add('open');
+        fab.innerHTML = '&#10005;';
+        const badge = fab.querySelector('.fab-badge');
+        if (badge) badge.remove();
+        document.getElementById('agentInput').focus();
+    } else {
+        win.classList.remove('open');
+        fab.innerHTML = '&#129302;<div class="fab-badge">AI</div>';
+    }
+}
+
+function getTime() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function addMsg(text, isUser) {
+    const msgs = document.getElementById('agentMessages');
+    const div = document.createElement('div');
+    div.className = 'msg ' + (isUser ? 'user' : 'bot');
+    div.innerHTML = text + '<div class="msg-time">' + getTime() + '</div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addQuickReplies(replies) {
+    const msgs = document.getElementById('agentMessages');
+    const div = document.createElement('div');
+    div.className = 'quick-replies';
+    replies.forEach(r => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-reply';
+        btn.textContent = r;
+        btn.onclick = () => {
+            div.remove();
+            sendAgentMsg(r);
+        };
+        div.appendChild(btn);
+    });
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+    const msgs = document.getElementById('agentMessages');
+    const div = document.createElement('div');
+    div.className = 'typing-indicator';
+    div.id = 'typingDots';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+    const el = document.getElementById('typingDots');
+    if (el) el.remove();
+}
+
+function getUserData() {
+    try {
+        const name = document.getElementById('name').value.trim();
+        const age = parseInt(document.getElementById('age').value);
+        const gender = document.getElementById('gender').value;
+        const height = parseFloat(document.getElementById('height').value);
+        const weight = parseFloat(document.getElementById('weight').value);
+        if (!name || !age || !height || !weight) return null;
+
+        const conditions = [];
+        document.querySelectorAll('.checkbox-grid input[type="checkbox"]:checked:not([name="goals"])').forEach(cb => conditions.push(cb.value));
+        const goals = [];
+        document.querySelectorAll('input[name="goals"]:checked').forEach(cb => goals.push(cb.value));
+
+        const bmi = weight / ((height / 100) ** 2);
+        const inchesOver60 = Math.max(0, (height / 2.54) - 60);
+        const idealW = gender === 'female' ? 45.5 + 2.3 * inchesOver60 : 50 + 2.3 * inchesOver60;
+        const bmr = gender === 'female' ? 10 * weight + 6.25 * height - 5 * age - 161 : 10 * weight + 6.25 * height - 5 * age + 5;
+        const activity = document.getElementById('activity').value || 'sedentary';
+        const mult = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, athlete: 1.9 };
+        const tdee = Math.round(bmr * (mult[activity] || 1.2));
+
+        return { name, age, gender, height, weight, bmi, idealW, bmr, tdee, activity,
+            sleep: parseFloat(document.getElementById('sleep').value) || 7,
+            water: parseInt(document.getElementById('water').value) || 6,
+            diet: document.getElementById('diet').value || 'nonveg',
+            smoking: document.getElementById('smoking').value || 'no',
+            alcohol: document.getElementById('alcohol').value || 'no',
+            conditions, goals };
+    } catch (e) { return null; }
+}
+
+function agentReply(query) {
+    const q = query.toLowerCase().trim();
+    const d = getUserData();
+
+    // Greetings
+    if (/^(hi|hello|hey|namaste|hola)/.test(q)) {
+        const name = d ? escapeHTML(d.name) : 'there';
+        return { text: `Hello <strong>${name}</strong>! I'm your AI Health Agent. I can help you with:<br><br>
+            &#9878; BMI & weight analysis<br>
+            &#127860; Diet & meal plans<br>
+            &#127939; Exercise advice<br>
+            &#128164; Sleep tips<br>
+            &#127807; Ayurvedic remedies<br>
+            &#129658; Blood test guidance<br>
+            &#128138; Condition-specific advice<br><br>
+            Just ask me anything about your health!`,
+            quick: ['What is my BMI?', 'Suggest a diet', 'Exercise plan', 'Ayurvedic tips'] };
+    }
+
+    // No data filled yet
+    if (!d) {
+        return { text: `Please fill in your details in the form first (at least Name, Age, Height, Weight). Then I can give you <strong>personalized</strong> health advice!`,
+            quick: ['What can you do?', 'How does this work?'] };
+    }
+
+    // BMI
+    if (/bmi|body mass/.test(q)) {
+        const cat = d.bmi < 18.5 ? 'Underweight' : d.bmi < 25 ? 'Normal' : d.bmi < 30 ? 'Overweight' : 'Obese';
+        const emoji = d.bmi < 18.5 ? '&#9888;' : d.bmi < 25 ? '&#9989;' : d.bmi < 30 ? '&#9888;' : '&#10060;';
+        return { text: `${emoji} Your BMI is <strong>${d.bmi.toFixed(1)}</strong> — that's <strong>${cat}</strong>.<br><br>
+            &#9878; Height: ${d.height} cm<br>
+            &#9878; Weight: ${d.weight} kg<br>
+            &#9878; Ideal Weight: ${d.idealW.toFixed(1)} kg<br><br>
+            ${d.bmi < 25 && d.bmi >= 18.5 ? 'Great job! Keep maintaining this range.' : 'I can help you work towards your ideal weight.'}`,
+            quick: ['How to reach ideal weight?', 'Suggest a diet', 'Calorie needs'] };
+    }
+
+    // Calories / TDEE
+    if (/calorie|tdee|how much.*eat|how many.*eat/.test(q)) {
+        const diff = d.weight - d.idealW;
+        const target = diff > 5 ? d.tdee - 500 : diff < -5 ? d.tdee + 400 : d.tdee;
+        return { text: `&#128293; Your daily calorie needs:<br><br>
+            <strong>BMR:</strong> ${Math.round(d.bmr)} kcal (at rest)<br>
+            <strong>TDEE:</strong> ${d.tdee} kcal (with ${d.activity} activity)<br><br>
+            ${diff > 5 ? `To lose weight, target <strong>${target} kcal/day</strong> (500 deficit). You\'ll lose ~0.5 kg/week.` :
+            diff < -5 ? `To gain weight, target <strong>${target} kcal/day</strong> (400 surplus). Focus on calorie-dense nutritious foods.` :
+            `To maintain weight, eat around <strong>${target} kcal/day</strong>. You're in a good range!`}`,
+            quick: ['Meal plan', 'Protein needs', 'Foods to avoid'] };
+    }
+
+    // Protein
+    if (/protein|how much protein/.test(q)) {
+        const proteinG = Math.round(d.weight * 1.6);
+        return { text: `&#129385; Your daily protein target: <strong>${proteinG}g</strong> (1.6g per kg body weight)<br><br>
+            <strong>Top protein sources (${d.diet === 'veg' || d.diet === 'vegan' ? 'Vegetarian' : 'Non-Veg'}):</strong><br>
+            ${d.diet === 'veg' || d.diet === 'vegan' ?
+            '&#8226; Paneer (100g) — 18g<br>&#8226; Dal/Lentils (1 cup) — 14g<br>&#8226; Chole/Rajma (1 cup) — 15g<br>&#8226; Soy chunks (50g) — 26g<br>&#8226; Greek yogurt (200g) — 20g<br>&#8226; Tofu (100g) — 17g' :
+            '&#8226; Chicken breast (100g) — 31g<br>&#8226; Eggs (2) — 13g<br>&#8226; Fish (100g) — 22g<br>&#8226; Paneer (100g) — 18g<br>&#8226; Whey protein (1 scoop) — 24g<br>&#8226; Dal (1 cup) — 14g'}`,
+            quick: ['Meal plan', 'Carb intake', 'Fat intake'] };
+    }
+
+    // Diet / meal plan
+    if (/diet|meal plan|what.*eat|food|nutrition|breakfast|lunch|dinner/.test(q)) {
+        const isVeg = d.diet === 'veg' || d.diet === 'vegan';
+        const diff = d.weight - d.idealW;
+        const cals = Math.round(diff > 5 ? d.tdee - 500 : diff < -5 ? d.tdee + 400 : d.tdee);
+        return { text: `&#129367; <strong>Personalized Meal Plan (${cals} kcal/day)</strong><br><br>
+            <strong>7 AM - Breakfast:</strong> ${isVeg ? 'Moong dal chilla + curd + fruit' : 'Eggs + whole wheat toast + fruit'}<br>
+            <strong>10 AM - Snack:</strong> ${isVeg ? 'Nuts + fruit bowl' : 'Greek yogurt + almonds'}<br>
+            <strong>1 PM - Lunch:</strong> ${isVeg ? 'Roti + dal + paneer sabzi + salad' : 'Chicken/fish + rice + salad + dal'}<br>
+            <strong>4 PM - Snack:</strong> ${isVeg ? 'Sprouts chaat + green tea' : 'Protein shake + nuts'}<br>
+            <strong>7:30 PM - Dinner:</strong> ${isVeg ? 'Khichdi + vegetables + curd' : 'Lean meat + roti + soup'}<br><br>
+            ${diff > 5 ? '&#9888; Focus on portion control and high-fiber foods.' : diff < -5 ? '&#9888; Add calorie-dense foods and eat frequently.' : '&#9989; Balanced diet to maintain your healthy weight.'}`,
+            quick: ['Foods to avoid', 'Ayurvedic diet', 'Protein needs', 'Water intake'] };
+    }
+
+    // Exercise
+    if (/exercise|workout|gym|fitness|walk|run|yoga|stretch/.test(q)) {
+        let plan = '';
+        if (d.activity === 'sedentary') {
+            plan = `&#9888; You have a <strong>sedentary</strong> lifestyle. Here's a beginner plan:<br><br>
+                <strong>Week 1-2:</strong> 15 min brisk walking daily<br>
+                <strong>Week 3-4:</strong> 30 min walking + stretching<br>
+                <strong>Week 5+:</strong> Add squats, pushups, planks<br><br>
+                &#128161; <strong>Quick wins:</strong> Take stairs, stand every 30 min, walk after meals.`;
+        } else if (d.activity === 'light') {
+            plan = `You're lightly active. Let's level up:<br><br>
+                &#8226; Aim for <strong>150 min/week</strong> moderate exercise<br>
+                &#8226; Mix cardio + strength training<br>
+                &#8226; Try HIIT 2x/week (20 min sessions)<br>
+                &#8226; Target 8,000-10,000 steps daily<br>
+                &#8226; Add yoga/stretching for flexibility`;
+        } else {
+            plan = `&#128170; Great activity level! To optimize:<br><br>
+                &#8226; Vary workouts to prevent plateaus<br>
+                &#8226; Include 1-2 rest days for recovery<br>
+                &#8226; Progressive overload in strength training<br>
+                &#8226; Pre-workout: complex carbs + caffeine<br>
+                &#8226; Post-workout: protein within 30 min`;
+        }
+        return { text: `&#127939; <strong>Exercise Advice for ${escapeHTML(d.name)}</strong><br><br>${plan}`,
+            quick: ['Yoga routine', 'Weight loss exercises', 'Home workout'] };
+    }
+
+    // Sleep
+    if (/sleep|insomnia|rest|tired|fatigue|energy/.test(q)) {
+        return { text: `&#128164; <strong>Sleep Analysis:</strong> You get <strong>${d.sleep} hours</strong>/night.<br><br>
+            ${d.sleep < 7 ? `&#9888; That's below the recommended 7-9 hours. Effects: weight gain, weak immunity, poor focus.<br><br>
+            <strong>Fix your sleep:</strong><br>
+            &#8226; Fixed bedtime — same time every night<br>
+            &#8226; No screens 1 hour before bed<br>
+            &#8226; Dark, cool room (18-20°C)<br>
+            &#8226; No caffeine after 2 PM<br>
+            &#8226; Try: warm milk + nutmeg (Ayurvedic remedy)` :
+            `&#9989; Good sleep duration! Tips to improve quality:<br>
+            &#8226; Maintain consistent schedule on weekends too<br>
+            &#8226; Avoid heavy dinner before bed<br>
+            &#8226; Try 10 min meditation before sleeping`}`,
+            quick: ['Ayurvedic sleep tips', 'How to reduce stress?', 'Energy boosters'] };
+    }
+
+    // Water
+    if (/water|hydrat|drink|dehydrat/.test(q)) {
+        const target = Math.round(d.weight * 0.033 * 1000);
+        return { text: `&#128167; <strong>Hydration:</strong> You drink <strong>${d.water} glasses/day</strong>.<br><br>
+            Your ideal intake: <strong>${(target / 1000).toFixed(1)} liters</strong> (~${Math.round(target / 250)} glasses)<br><br>
+            ${d.water < 8 ? `&#9888; You need more water! Tips:<br>
+            &#8226; Start morning with warm lemon water<br>
+            &#8226; Keep a bottle at your desk<br>
+            &#8226; Set hourly reminders<br>
+            &#8226; Eat water-rich fruits: watermelon, cucumber<br>
+            &#8226; Herbal teas count toward intake` :
+            '&#9989; Good hydration! Keep it up. Increase during exercise and hot weather.'}`,
+            quick: ['Detox water recipes', 'Benefits of warm water', 'Morning routine'] };
+    }
+
+    // Ayurveda
+    if (/ayurved|dosha|vata|pitta|kapha|herb|ashwagandha|triphala|tulsi|turmeric|haldi|kadha|home remed|gharelu|nuskh/.test(q)) {
+        const dosha = d.bmi < 18.5 ? 'Vata' : d.bmi < 25 ? 'Pitta' : 'Kapha';
+        return { text: `&#127807; <strong>Ayurvedic Advice for ${escapeHTML(d.name)}</strong><br><br>
+            Your likely Prakriti: <strong>${dosha}-dominant</strong><br><br>
+            <strong>Top 5 Ayurvedic herbs for you:</strong><br>
+            &#8226; <strong>Ashwagandha</strong> — stress, energy, immunity (warm milk at night)<br>
+            &#8226; <strong>Triphala</strong> — digestion, detox (warm water before bed)<br>
+            &#8226; <strong>Turmeric</strong> — anti-inflammatory (golden milk daily)<br>
+            &#8226; <strong>Tulsi</strong> — immunity, respiratory (tulsi tea 2x/day)<br>
+            &#8226; <strong>Amla</strong> — vitamin C, hair, skin (1 fresh amla or juice)<br><br>
+            <strong>Daily Ayurvedic routine:</strong><br>
+            &#8226; Wake before 6 AM (Brahma Muhurta)<br>
+            &#8226; Oil pulling + tongue scraping<br>
+            &#8226; Largest meal at noon (strongest Agni)<br>
+            &#8226; Light dinner before 7:30 PM<br>
+            &#8226; Sleep by 10 PM`,
+            quick: ['Dosha diet plan', 'Kadha recipe', 'Ayurvedic weight loss', 'Herbs for my condition'] };
+    }
+
+    // Blood tests
+    if (/blood test|lab test|check ?up|test.*do|report|diagnos/.test(q)) {
+        let tests = `&#129658; <strong>Recommended Blood Tests:</strong><br><br>
+            <strong>Essential (everyone):</strong><br>
+            &#8226; CBC (Complete Blood Count)<br>
+            &#8226; Fasting Blood Sugar + HbA1c<br>
+            &#8226; Lipid Profile (cholesterol)<br>
+            &#8226; Liver Function Test (LFT)<br>
+            &#8226; Kidney Function Test (KFT)<br>
+            &#8226; Thyroid (TSH, T3, T4)<br>
+            &#8226; Vitamin D & B12<br>`;
+        if (d.age >= 40) tests += `<br><strong>Age 40+ extras:</strong><br>&#8226; ECG + Stress Test<br>&#8226; HbA1c every 6 months<br>`;
+        if (d.conditions.length > 0) tests += `<br><strong>For your conditions (${d.conditions.join(', ')}):</strong><br>&#8226; Ask your doctor for condition-specific panels<br>`;
+        tests += `<br>&#128197; <strong>Frequency:</strong> Full checkup once a year. With chronic conditions, every 3-6 months.`;
+        return { text: tests, quick: ['What is HbA1c?', 'Normal sugar levels', 'Cholesterol ranges'] };
+    }
+
+    // Weight loss
+    if (/lose weight|weight loss|fat loss|slim|reduce weight|belly fat/.test(q)) {
+        const deficit = d.tdee - 500;
+        return { text: `&#9878; <strong>Weight Loss Plan for ${escapeHTML(d.name)}</strong><br><br>
+            Current: <strong>${d.weight} kg</strong> | Target: <strong>${d.idealW.toFixed(1)} kg</strong> | Lose: <strong>${(d.weight - d.idealW).toFixed(1)} kg</strong><br><br>
+            <strong>Daily calories:</strong> ${deficit} kcal (500 deficit)<br>
+            <strong>Expected loss:</strong> ~0.5 kg per week<br><br>
+            <strong>Top tips:</strong><br>
+            &#8226; High protein (${Math.round(d.weight * 1.6)}g/day) to preserve muscle<br>
+            &#8226; Cut sugar, maida, fried foods, sodas<br>
+            &#8226; Eat fiber-rich foods for fullness<br>
+            &#8226; Walk 10,000 steps + strength training 3x/week<br>
+            &#8226; Drink water before meals (reduces intake by 20%)<br>
+            &#8226; Sleep 7-9 hours (poor sleep = weight gain)<br><br>
+            <strong>Ayurvedic:</strong> Warm water + honey + lemon (morning), Trikatu before meals, Triphala at night.`,
+            quick: ['Belly fat exercises', 'Foods to avoid', 'Meal plan', 'Intermittent fasting?'] };
+    }
+
+    // Weight gain
+    if (/gain weight|weight gain|bulk|underweight|too thin|skinny/.test(q)) {
+        const surplus = d.tdee + 400;
+        return { text: `&#127860; <strong>Weight Gain Plan for ${escapeHTML(d.name)}</strong><br><br>
+            Current: <strong>${d.weight} kg</strong> | Target: <strong>${d.idealW.toFixed(1)} kg</strong><br><br>
+            <strong>Daily calories:</strong> ${surplus} kcal (400 surplus)<br><br>
+            <strong>Tips:</strong><br>
+            &#8226; Eat 5-6 meals/day — never skip meals<br>
+            &#8226; Calorie-dense foods: nuts, peanut butter, ghee, cheese, avocado<br>
+            &#8226; Protein shakes between meals (banana + oats + milk + peanut butter)<br>
+            &#8226; Strength training 4x/week to build muscle<br>
+            &#8226; Ashwagandha + warm milk at night (Ayurvedic strength booster)`,
+            quick: ['High calorie foods', 'Protein sources', 'Workout plan'] };
+    }
+
+    // Stress
+    if (/stress|anxi|depress|mental|mood|tension|relax/.test(q)) {
+        return { text: `&#128524; <strong>Stress Management Tips:</strong><br><br>
+            &#8226; <strong>Breathe:</strong> 4-7-8 technique — inhale 4s, hold 7s, exhale 8s<br>
+            &#8226; <strong>Move:</strong> Even 20 min walking boosts mood<br>
+            &#8226; <strong>Sleep:</strong> 7-9 hours is non-negotiable<br>
+            &#8226; <strong>Connect:</strong> Talk to someone you trust<br>
+            &#8226; <strong>Limit:</strong> Reduce social media and news intake<br>
+            &#8226; <strong>Nature:</strong> 20 min outdoors reduces cortisol<br><br>
+            <strong>Ayurvedic:</strong><br>
+            &#8226; Ashwagandha — best adaptogen for stress<br>
+            &#8226; Brahmi — calms the mind<br>
+            &#8226; Jatamansi — promotes deep sleep<br>
+            &#8226; Pranayama: Anulom Vilom (5 min daily)`,
+            quick: ['Meditation guide', 'Sleep tips', 'Ayurvedic herbs'] };
+    }
+
+    // Skin / Hair
+    if (/skin|acne|pimple|glow|hair|hair loss|dandruff/.test(q)) {
+        return { text: `&#10024; <strong>Skin & Hair Health:</strong><br><br>
+            <strong>For glowing skin:</strong><br>
+            &#8226; Drink 8-10 glasses water daily<br>
+            &#8226; Vitamin C foods: amla, orange, guava<br>
+            &#8226; Vitamin E: almonds, sunflower seeds<br>
+            &#8226; Avoid excess sugar and dairy<br>
+            &#8226; Sleep 7-8 hours (skin repairs overnight)<br><br>
+            <strong>For healthy hair:</strong><br>
+            &#8226; Protein + iron + biotin in diet<br>
+            &#8226; Bhringraj oil massage 2x/week<br>
+            &#8226; Amla + coconut oil hot oil treatment<br><br>
+            <strong>Ayurvedic:</strong> Kumkumadi Tailam (face), Neem paste (acne), Manjistha (blood purifier)`,
+            quick: ['Anti-acne diet', 'Hair growth tips', 'Ayurvedic face pack'] };
+    }
+
+    // Immunity
+    if (/immun|cold|cough|fever|flu|sick|infect/.test(q)) {
+        return { text: `&#128170; <strong>Boost Your Immunity:</strong><br><br>
+            <strong>Daily essentials:</strong><br>
+            &#8226; Vitamin C — amla, orange, guava, bell pepper<br>
+            &#8226; Zinc — pumpkin seeds, nuts, chickpeas<br>
+            &#8226; Vitamin D — 15 min morning sunlight<br>
+            &#8226; Probiotics — yogurt, kefir daily<br>
+            &#8226; Sleep 7-9 hours<br><br>
+            <strong>Ayurvedic Kadha (immunity drink):</strong><br>
+            Boil tulsi + ginger + black pepper + cinnamon + clove in water. Add jaggery or honey. Drink warm 1-2x daily.<br><br>
+            &#8226; <strong>Chyawanprash</strong> — 1 tsp with warm milk (morning)<br>
+            &#8226; <strong>Giloy juice</strong> — 15ml empty stomach`,
+            quick: ['Kadha recipe', 'Vitamin C foods', 'Ayurvedic herbs'] };
+    }
+
+    // Digestion
+    if (/digest|gas|bloat|acidity|constipat|stomach|gut|ibs/.test(q)) {
+        return { text: `&#129473; <strong>Digestive Health Tips:</strong><br><br>
+            &#8226; Eat slowly, chew food 20-30 times<br>
+            &#8226; Don't drink water during meals<br>
+            &#8226; Walk 10 min after meals<br>
+            &#8226; Include probiotics: curd, buttermilk<br>
+            &#8226; Fiber: fruits, vegetables, whole grains<br><br>
+            <strong>Ayurvedic remedies:</strong><br>
+            &#8226; <strong>Jeera water</strong> — boil 1 tsp cumin, drink warm after meals<br>
+            &#8226; <strong>Ajwain</strong> — chew with rock salt after heavy meals<br>
+            &#8226; <strong>Triphala</strong> — before bed for constipation<br>
+            &#8226; <strong>Hingwashtak Churna</strong> — for gas & bloating<br>
+            &#8226; <strong>Saunf (fennel) water</strong> — for acidity`,
+            quick: ['Acidity remedies', 'Constipation fix', 'Gut-friendly foods'] };
+    }
+
+    // Specific conditions
+    if (/diabetes|sugar|blood sugar|insulin/.test(q)) {
+        return { text: `&#127852; <strong>Diabetes / Blood Sugar:</strong><br><br>
+            <strong>Modern tips:</strong><br>
+            &#8226; Monitor fasting sugar (target: 80-100 mg/dL)<br>
+            &#8226; HbA1c target: below 6.5%<br>
+            &#8226; Low GI foods: oats, barley, legumes, vegetables<br>
+            &#8226; Walk 30 min after meals (lowers sugar 30-40%)<br><br>
+            <strong>Ayurvedic:</strong><br>
+            &#8226; Karela juice — 30ml empty stomach<br>
+            &#8226; Methi seeds — soak overnight, chew in morning<br>
+            &#8226; Jamun seed powder — 1/2 tsp 2x daily<br>
+            &#8226; Vijaysar tumbler — drink water stored overnight`,
+            quick: ['Low GI foods list', 'Diabetic meal plan', 'Exercise for diabetes'] };
+    }
+
+    if (/bp|blood pressure|hypertension/.test(q)) {
+        return { text: `&#128147; <strong>Blood Pressure Management:</strong><br><br>
+            <strong>Target:</strong> Below 120/80 mmHg<br><br>
+            &#8226; Reduce salt to < 5g/day (1 tsp)<br>
+            &#8226; DASH diet: fruits, vegetables, whole grains<br>
+            &#8226; Exercise 30 min most days<br>
+            &#8226; Manage stress — meditation, pranayama<br>
+            &#8226; Limit alcohol and quit smoking<br><br>
+            <strong>Ayurvedic:</strong> Arjuna bark tea, 2 raw garlic cloves daily, Sarpagandha (consult Vaidya), Sheetali Pranayama`,
+            quick: ['Low sodium foods', 'DASH diet plan', 'Stress management'] };
+    }
+
+    // What can you do
+    if (/what can you|what do you|help|features|how.*work|capabilities/.test(q)) {
+        return { text: `I'm your <strong>AI Health Agent</strong>! I analyze your health data and give personalized advice. Ask me about:<br><br>
+            &#9878; <strong>"What is my BMI?"</strong> — body analysis<br>
+            &#128293; <strong>"How many calories?"</strong> — daily needs<br>
+            &#127860; <strong>"Suggest a diet"</strong> — meal plans<br>
+            &#127939; <strong>"Exercise plan"</strong> — workout advice<br>
+            &#128164; <strong>"Sleep tips"</strong> — better rest<br>
+            &#128167; <strong>"Water intake"</strong> — hydration<br>
+            &#127807; <strong>"Ayurvedic tips"</strong> — herbal remedies<br>
+            &#129658; <strong>"Blood tests"</strong> — what to get<br>
+            &#9878; <strong>"Weight loss/gain"</strong> — plans<br>
+            &#128138; <strong>"Diabetes/BP/etc."</strong> — condition advice<br><br>
+            &#128161; Fill in your details in the form for personalized answers!`,
+            quick: ['What is my BMI?', 'Suggest a diet', 'Ayurvedic tips', 'Blood tests'] };
+    }
+
+    // Thank you
+    if (/thank|thanks|thx|appreciate/.test(q)) {
+        return { text: `You're welcome, ${d ? escapeHTML(d.name) : 'friend'}! &#128522; Stay healthy and feel free to ask me anything anytime. Remember — <strong>small daily habits lead to big health changes</strong>!`,
+            quick: ['Any more tips?', 'Ayurvedic routine', 'Blood tests'] };
+    }
+
+    // Fallback
+    return { text: `I understand you're asking about "<strong>${escapeHTML(query)}</strong>". Here are some topics I can help with:<br><br>
+        Try asking me about: <strong>BMI, diet, exercise, sleep, water, weight loss, weight gain, Ayurveda, blood tests, diabetes, BP, stress, skin, hair, immunity, digestion</strong>, and more!`,
+        quick: ['What is my BMI?', 'Suggest a diet', 'Exercise plan', 'Ayurvedic tips', 'Blood tests needed'] };
+}
+
+function sendAgentMsg(text) {
+    const input = document.getElementById('agentInput');
+    const msg = text || input.value.trim();
+    if (!msg) return;
+    input.value = '';
+
+    addMsg(msg, true);
+
+    // Remove any existing quick replies
+    document.querySelectorAll('.quick-replies').forEach(el => el.remove());
+
+    showTyping();
+
+    const delay = 600 + Math.random() * 800;
+    setTimeout(() => {
+        hideTyping();
+        const reply = agentReply(msg);
+        addMsg(reply.text, false);
+        if (reply.quick) addQuickReplies(reply.quick);
+    }, delay);
+}
+
+function agentInputKeydown(e) {
+    if (e.key === 'Enter') sendAgentMsg();
+}
+</script>
+
+<!-- Health Agent Chat Widget -->
+<button class="agent-fab" id="agentFab" onclick="toggleAgent()">&#129302;<div class="fab-badge">AI</div></button>
+
+<div class="agent-window" id="agentWindow">
+    <div class="agent-header">
+        <div class="agent-avatar">&#129302;</div>
+        <div class="agent-header-info">
+            <h3>Health Agent</h3>
+            <p>AI-powered health assistant</p>
+        </div>
+        <button class="agent-close" onclick="toggleAgent()">&times;</button>
+    </div>
+    <div class="agent-messages" id="agentMessages">
+        <div class="msg bot">
+            Hey there! &#128075; I'm your <strong>AI Health Agent</strong>. Fill in your details in the form, and I'll give you personalized health advice.<br><br>
+            Ask me anything about diet, exercise, BMI, Ayurveda, blood tests, and more!
+            <div class="msg-time">Now</div>
+        </div>
+        <div class="quick-replies">
+            <button class="quick-reply" onclick="this.parentElement.remove();sendAgentMsg('What can you do?')">What can you do?</button>
+            <button class="quick-reply" onclick="this.parentElement.remove();sendAgentMsg('What is my BMI?')">What is my BMI?</button>
+            <button class="quick-reply" onclick="this.parentElement.remove();sendAgentMsg('Suggest a diet')">Suggest a diet</button>
+            <button class="quick-reply" onclick="this.parentElement.remove();sendAgentMsg('Ayurvedic tips')">Ayurvedic tips</button>
+        </div>
+    </div>
+    <div class="agent-input-area">
+        <input type="text" id="agentInput" placeholder="Ask me anything about health..." onkeydown="agentInputKeydown(event)">
+        <button class="agent-send" onclick="sendAgentMsg()">&#10148;</button>
+    </div>
+</div>
+
+</body>
+</html>
