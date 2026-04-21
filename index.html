@@ -3658,9 +3658,9 @@ function handleRegister() {
     pendingAuthEmail = email;
     pendingAuthName = name;
     isNewUser = true;
-    authOTPCode = generateOTP();
-    sendOTPEmail(email, name, authOTPCode);
-    showOTP(email);
+    saveUser(email, name);
+    setSession(email, name);
+    completeAuth(name, email);
 }
 
 function handleLogin() {
@@ -3681,9 +3681,8 @@ function handleLogin() {
     pendingAuthEmail = email;
     pendingAuthName = users[email.toLowerCase()].name;
     isNewUser = false;
-    authOTPCode = generateOTP();
-    sendOTPEmail(email, pendingAuthName, authOTPCode);
-    showOTP(email);
+    setSession(email, pendingAuthName);
+    completeAuth(pendingAuthName, email);
 }
 
 function otpNext(el, idx) {
