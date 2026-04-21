@@ -945,13 +945,305 @@
                 border-radius: 16px;
             }
         }
+        /* ===== AUTH SCREENS ===== */
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #0c4a6e 0%, #065f46 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .auth-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+        }
+        .auth-card {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: authSlideUp 0.6s ease;
+        }
+        @keyframes authSlideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .auth-logo {
+            width: 70px; height: 70px;
+            background: var(--gradient);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+            color: white;
+            box-shadow: 0 8px 25px rgba(14,165,233,0.35);
+        }
+        .auth-card h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            color: var(--text);
+        }
+        .auth-card .auth-subtitle {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 2rem;
+        }
+        .auth-form { text-align: left; }
+        .auth-form .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .auth-form label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text);
+        }
+        .auth-form input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .auth-form input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+        }
+        .auth-form input.error {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+        }
+        .auth-error {
+            color: var(--danger);
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 0.85rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(14,165,233,0.35);
+        }
+        .auth-btn:active { transform: translateY(0); }
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+        .auth-divider::before, .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .auth-switch {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-top: 1.5rem;
+        }
+        .auth-switch a {
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .auth-switch a:hover { text-decoration: underline; }
+        .otp-inputs {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+        .otp-inputs input {
+            width: 52px; height: 58px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .otp-inputs input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+        }
+        .otp-timer {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .otp-timer span { color: var(--primary); font-weight: 600; }
+        .otp-resend {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-family: inherit;
+        }
+        .otp-resend:disabled {
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+        .auth-user-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            z-index: 101;
+        }
+        .auth-user-bar .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 700;
+        }
+        .auth-user-bar .user-name {
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+        .auth-user-bar .logout-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        .auth-user-bar .logout-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        @media (max-width: 500px) {
+            .auth-card { margin: 1rem; padding: 2rem 1.5rem; }
+            .otp-inputs input { width: 44px; height: 50px; font-size: 1.2rem; }
+            .auth-user-bar { top: 0.5rem; right: 0.5rem; gap: 0.4rem; }
+            .auth-user-bar .user-name { display: none; }
+        }
     </style>
 </head>
 <body>
+
+    <!-- REGISTRATION SCREEN -->
+    <div class="auth-overlay" id="authRegister">
+        <div class="auth-card">
+            <div class="auth-logo">&#127973;</div>
+            <h2>Create Account</h2>
+            <p class="auth-subtitle">Join HealthAdvisor AI for personalized health insights</p>
+            <div class="auth-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regName" placeholder="Enter your full name" autocomplete="name">
+                    <div class="auth-error" id="regNameError">Please enter your name</div>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email">
+                    <div class="auth-error" id="regEmailError">Please enter a valid email</div>
+                </div>
+                <button class="auth-btn" onclick="handleRegister()">Create Account</button>
+            </div>
+            <div class="auth-switch">
+                Already have an account? <a onclick="showLogin()">Sign in</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div class="auth-overlay hidden" id="authLogin">
+        <div class="auth-card">
+            <div class="auth-logo">&#128274;</div>
+            <h2>Welcome Back</h2>
+            <p class="auth-subtitle">Sign in to access your health dashboard</p>
+            <div class="auth-form">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+                    <div class="auth-error" id="loginEmailError">Please enter a valid email</div>
+                </div>
+                <button class="auth-btn" onclick="handleLogin()">Send Verification Code</button>
+            </div>
+            <div class="auth-switch">
+                Don't have an account? <a onclick="showRegister()">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP VERIFICATION SCREEN -->
+    <div class="auth-overlay hidden" id="authOTP">
+        <div class="auth-card">
+            <div class="auth-logo">&#128272;</div>
+            <h2>Verify Your Email</h2>
+            <p class="auth-subtitle">Enter the 4-digit code sent to <strong id="otpEmailDisplay"></strong></p>
+            <div class="otp-inputs" id="otpInputs">
+                <input type="text" maxlength="1" inputmode="numeric" oninput="otpNext(this, 0)" onkeydown="otpBack(event, 0)">
+                <input type="text" maxlength="1" inputmode="numeric" oninput="otpNext(this, 1)" onkeydown="otpBack(event, 1)">
+                <input type="text" maxlength="1" inputmode="numeric" oninput="otpNext(this, 2)" onkeydown="otpBack(event, 2)">
+                <input type="text" maxlength="1" inputmode="numeric" oninput="otpNext(this, 3)" onkeydown="otpBack(event, 3)">
+            </div>
+            <div class="otp-timer">Code expires in <span id="otpTimerText">01:30</span></div>
+            <button class="auth-btn" onclick="verifyOTP()">Verify & Continue</button>
+            <div style="margin-top:1rem;">
+                <button class="otp-resend" id="resendBtn" disabled onclick="resendOTP()">Resend Code</button>
+            </div>
+            <div class="auth-error" id="otpError" style="text-align:center;margin-top:0.5rem;">Invalid code. Please try again.</div>
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
-    <header>
+    <header style="position:relative;">
         <h1>HealthAdvisor <span>AI</span></h1>
         <p>Your AI-Powered Personal Health Consultant</p>
+        <div class="auth-user-bar" id="userBar" style="display:none;">
+            <div class="user-avatar" id="userAvatar"></div>
+            <span class="user-name" id="userBarName"></span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
     </header>
 
     <div class="container">
@@ -3270,6 +3562,221 @@ function sendAgentMsg(text) {
 function agentInputKeydown(e) {
     if (e.key === 'Enter') sendAgentMsg();
 }
+
+/* ===== AUTH SYSTEM ===== */
+let authOTPCode = '';
+let otpTimer = null;
+let otpSeconds = 90;
+let pendingAuthEmail = '';
+let pendingAuthName = '';
+let isNewUser = false;
+
+function generateOTP() {
+    return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function getUsers() {
+    try { return JSON.parse(localStorage.getItem('ha_users') || '{}'); } catch { return {}; }
+}
+
+function saveUser(email, name) {
+    const users = getUsers();
+    users[email.toLowerCase()] = { name, email: email.toLowerCase(), createdAt: new Date().toISOString() };
+    localStorage.setItem('ha_users', JSON.stringify(users));
+}
+
+function setSession(email, name) {
+    localStorage.setItem('ha_session', JSON.stringify({ email: email.toLowerCase(), name, loggedInAt: new Date().toISOString() }));
+}
+
+function getSession() {
+    try { return JSON.parse(localStorage.getItem('ha_session')); } catch { return null; }
+}
+
+function clearSession() {
+    localStorage.removeItem('ha_session');
+}
+
+function showRegister() {
+    document.getElementById('authLogin').classList.add('hidden');
+    document.getElementById('authOTP').classList.add('hidden');
+    document.getElementById('authRegister').classList.remove('hidden');
+}
+
+function showLogin() {
+    document.getElementById('authRegister').classList.add('hidden');
+    document.getElementById('authOTP').classList.add('hidden');
+    document.getElementById('authLogin').classList.remove('hidden');
+}
+
+function showOTP(email) {
+    document.getElementById('authRegister').classList.add('hidden');
+    document.getElementById('authLogin').classList.add('hidden');
+    document.getElementById('authOTP').classList.remove('hidden');
+    document.getElementById('otpEmailDisplay').textContent = email;
+    document.getElementById('otpError').style.display = 'none';
+    const inputs = document.querySelectorAll('#otpInputs input');
+    inputs.forEach(inp => inp.value = '');
+    inputs[0].focus();
+    startOTPTimer();
+}
+
+function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function clearErrors() {
+    document.querySelectorAll('.auth-form input').forEach(i => i.classList.remove('error'));
+    document.querySelectorAll('.auth-error').forEach(e => e.style.display = 'none');
+}
+
+function handleRegister() {
+    clearErrors();
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    let valid = true;
+    if (!name) {
+        document.getElementById('regName').classList.add('error');
+        document.getElementById('regNameError').style.display = 'block';
+        valid = false;
+    }
+    if (!email || !validateEmail(email)) {
+        document.getElementById('regEmail').classList.add('error');
+        document.getElementById('regEmailError').style.display = 'block';
+        valid = false;
+    }
+    if (!valid) return;
+    const users = getUsers();
+    if (users[email.toLowerCase()]) {
+        document.getElementById('regEmailError').textContent = 'Account already exists. Please sign in.';
+        document.getElementById('regEmail').classList.add('error');
+        document.getElementById('regEmailError').style.display = 'block';
+        return;
+    }
+    pendingAuthEmail = email;
+    pendingAuthName = name;
+    isNewUser = true;
+    authOTPCode = generateOTP();
+    showToast('info', 'Verification Code', 'Your OTP code is: ' + authOTPCode, 8000);
+    showOTP(email);
+}
+
+function handleLogin() {
+    clearErrors();
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email || !validateEmail(email)) {
+        document.getElementById('loginEmail').classList.add('error');
+        document.getElementById('loginEmailError').style.display = 'block';
+        return;
+    }
+    const users = getUsers();
+    if (!users[email.toLowerCase()]) {
+        document.getElementById('loginEmailError').textContent = 'No account found. Please sign up first.';
+        document.getElementById('loginEmail').classList.add('error');
+        document.getElementById('loginEmailError').style.display = 'block';
+        return;
+    }
+    pendingAuthEmail = email;
+    pendingAuthName = users[email.toLowerCase()].name;
+    isNewUser = false;
+    authOTPCode = generateOTP();
+    showToast('info', 'Verification Code', 'Your OTP code is: ' + authOTPCode, 8000);
+    showOTP(email);
+}
+
+function otpNext(el, idx) {
+    el.value = el.value.replace(/[^0-9]/g, '');
+    if (el.value && idx < 3) {
+        document.querySelectorAll('#otpInputs input')[idx + 1].focus();
+    }
+}
+
+function otpBack(e, idx) {
+    if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+        document.querySelectorAll('#otpInputs input')[idx - 1].focus();
+    }
+}
+
+function startOTPTimer() {
+    otpSeconds = 90;
+    document.getElementById('resendBtn').disabled = true;
+    if (otpTimer) clearInterval(otpTimer);
+    otpTimer = setInterval(() => {
+        otpSeconds--;
+        const m = String(Math.floor(otpSeconds / 60)).padStart(2, '0');
+        const s = String(otpSeconds % 60).padStart(2, '0');
+        document.getElementById('otpTimerText').textContent = m + ':' + s;
+        if (otpSeconds <= 0) {
+            clearInterval(otpTimer);
+            document.getElementById('resendBtn').disabled = false;
+            document.getElementById('otpTimerText').textContent = '00:00';
+        }
+    }, 1000);
+}
+
+function resendOTP() {
+    authOTPCode = generateOTP();
+    showToast('info', 'New Code Sent', 'Your new OTP code is: ' + authOTPCode, 8000);
+    startOTPTimer();
+    const inputs = document.querySelectorAll('#otpInputs input');
+    inputs.forEach(inp => inp.value = '');
+    inputs[0].focus();
+}
+
+function verifyOTP() {
+    const inputs = document.querySelectorAll('#otpInputs input');
+    const entered = Array.from(inputs).map(i => i.value).join('');
+    if (entered.length < 4) {
+        document.getElementById('otpError').textContent = 'Please enter the complete 4-digit code.';
+        document.getElementById('otpError').style.display = 'block';
+        return;
+    }
+    if (entered !== authOTPCode) {
+        document.getElementById('otpError').textContent = 'Invalid code. Please try again.';
+        document.getElementById('otpError').style.display = 'block';
+        inputs.forEach(i => i.value = '');
+        inputs[0].focus();
+        return;
+    }
+    if (otpTimer) clearInterval(otpTimer);
+    if (isNewUser) {
+        saveUser(pendingAuthEmail, pendingAuthName);
+    }
+    setSession(pendingAuthEmail, pendingAuthName);
+    completeAuth(pendingAuthName, pendingAuthEmail);
+}
+
+function completeAuth(name, email) {
+    document.getElementById('authRegister').classList.add('hidden');
+    document.getElementById('authLogin').classList.add('hidden');
+    document.getElementById('authOTP').classList.add('hidden');
+    // Pre-fill form fields
+    const nameField = document.getElementById('name');
+    const emailField = document.getElementById('email');
+    if (nameField && !nameField.value) nameField.value = name;
+    if (emailField && !emailField.value) emailField.value = email;
+    // Show user bar
+    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('userAvatar').textContent = initials;
+    document.getElementById('userBarName').textContent = name;
+    document.getElementById('userBar').style.display = 'flex';
+    showToast('success', 'Welcome!', 'Signed in as ' + escapeHTML(name), 4000);
+}
+
+function handleLogout() {
+    clearSession();
+    document.getElementById('userBar').style.display = 'none';
+    document.getElementById('authRegister').classList.remove('hidden');
+    showToast('info', 'Signed Out', 'You have been logged out successfully.', 3000);
+}
+
+// Check session on load
+(function checkAuth() {
+    const session = getSession();
+    if (session && session.email && session.name) {
+        completeAuth(session.name, session.email);
+    }
+})();
 </script>
 
 <!-- Health Agent Chat Widget -->
