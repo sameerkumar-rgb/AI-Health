@@ -1,0 +1,141 @@
+{
+  "database": "HealthAdvisor AI",
+  "version": "1.0",
+  "description": "Database schema for HealthAdvisor AI application",
+  "tables": {
+    "users": {
+      "description": "Registered user accounts",
+      "fields": {
+        "id": { "type": "string", "primary_key": true, "format": "USR###" },
+        "name": { "type": "string", "required": true, "max_length": 100 },
+        "email": { "type": "string", "required": true, "unique": true },
+        "password_hash": { "type": "string", "required": true },
+        "created_at": { "type": "datetime", "auto": true },
+        "last_login": { "type": "datetime" },
+        "is_active": { "type": "boolean", "default": true }
+      },
+      "indexes": ["email"]
+    },
+    "health_records": {
+      "description": "User health data submissions from the wizard form",
+      "fields": {
+        "id": { "type": "string", "primary_key": true, "format": "REC###" },
+        "user_id": { "type": "string", "foreign_key": "users.id", "required": true },
+        "created_at": { "type": "datetime", "auto": true },
+        "personal_info": {
+          "type": "object",
+          "fields": {
+            "name": "string",
+            "age": "integer (1-120)",
+            "gender": "enum (male, female, other)",
+            "email": "string",
+            "pregnancy": "enum (none, pregnant, breastfeeding, ttc)",
+            "ethnicity": "enum (asian, western, east_asian, african, other)"
+          }
+        },
+        "body_metrics": {
+          "type": "object",
+          "fields": {
+            "height_cm": "float (50-250)",
+            "weight_kg": "float (10-300)",
+            "waist_cm": "float (30-200, nullable)",
+            "blood_group": "enum (A+, A-, B+, B-, AB+, AB-, O+, O-)",
+            "bmi": "float (calculated)",
+            "bmi_category": "string (calculated)",
+            "ideal_weight_kg": "float (calculated)"
+          }
+        },
+        "medical_history": {
+          "type": "object",
+          "fields": {
+            "conditions": "array of enum (diabetes, hypertension, heart_disease, thyroid, asthma, arthritis, pcos, cholesterol, obesity, anemia, vitamin_d_deficiency, kidney_disease, liver_disease, depression, migraine, back_pain, sleep_apnea, ibs, skin_issues, osteoporosis, cancer, stroke, epilepsy, allergic_rhinitis)",
+            "medications": "string (free text)",
+            "allergies": "string (comma separated)"
+          }
+        },
+        "lifestyle": {
+          "type": "object",
+          "fields": {
+            "activity_level": "enum (sedentary, light, moderate, active, athlete)",
+            "sleep_hours": "float (1-16)",
+            "water_glasses": "integer (0-30)",
+            "diet_type": "enum (nonveg, veg, vegan, keto, other)",
+            "smoking": "enum (no, occasionally, yes)",
+            "alcohol": "enum (no, occasionally, moderate, heavy)",
+            "goals": "array of enum (lose_weight, gain_weight, build_muscle, improve_stamina, better_sleep, reduce_stress, eat_healthier, boost_immunity, improve_flexibility, quit_smoking, manage_diabetes, lower_bp, improve_digestion, better_skin, increase_energy, improve_posture)"
+          }
+        },
+        "results": {
+          "type": "object",
+          "fields": {
+            "health_score": "integer (10-100)",
+            "bmr": "float (calculated)",
+            "tdee": "float (calculated)",
+            "dosha": {
+              "vata": "integer (percentage)",
+              "pitta": "integer (percentage)",
+              "kapha": "integer (percentage)",
+              "dominant": "enum (vata, pitta, kapha)"
+            }
+          }
+        }
+      },
+      "indexes": ["user_id", "created_at"]
+    },
+    "reports": {
+      "description": "Generated health reports with summary and recommendations",
+      "fields": {
+        "id": { "type": "string", "primary_key": true, "format": "RPT###" },
+        "user_id": { "type": "string", "foreign_key": "users.id", "required": true },
+        "record_id": { "type": "string", "foreign_key": "health_records.id", "required": true },
+        "generated_at": { "type": "datetime", "auto": true },
+        "summary": {
+          "type": "object",
+          "fields": {
+            "health_score": "integer",
+            "bmi": "float",
+            "bmi_category": "string",
+            "risk_level": "enum (low, moderate, high, critical)",
+            "top_priorities": "array of string"
+          }
+        },
+        "recommendations_count": {
+          "type": "object",
+          "fields": {
+            "critical": "integer",
+            "high": "integer",
+            "medium": "integer",
+            "low": "integer"
+          }
+        },
+        "blood_tests_recommended": "array of string",
+        "ayurvedic_dosha": "enum (vata, pitta, kapha)",
+        "is_printed": { "type": "boolean", "default": false },
+        "is_shared": { "type": "boolean", "default": false }
+      },
+      "indexes": ["user_id", "record_id", "generated_at"]
+    }
+  },
+  "relationships": [
+    {
+      "type": "one_to_many",
+      "from": "users",
+      "to": "health_records",
+      "key": "user_id"
+    },
+    {
+      "type": "one_to_one",
+      "from": "health_records",
+      "to": "reports",
+      "key": "record_id"
+    }
+  ],
+  "statistics": {
+    "total_users": 5,
+    "total_records": 5,
+    "total_reports": 5,
+    "avg_health_score": 64,
+    "most_common_conditions": ["vitamin_d_deficiency", "cholesterol", "diabetes"],
+    "most_common_goals": ["lose_weight", "boost_immunity", "eat_healthier"]
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "reports": [
+    {
+      "id": "RPT001",
+      "user_id": "USR001",
+      "record_id": "REC001",
+      "generated_at": "2026-04-21T14:32:00Z",
+      "summary": {
+        "health_score": 62,
+        "bmi": 25.5,
+        "bmi_category": "Overweight",
+        "risk_level": "moderate",
+        "top_priorities": [
+          "Get blood tests done",
+          "Lose 9.1 kg to reach ideal weight",
+          "Improve sleep from 6.5 to 7-9 hours",
+          "Increase water intake from 5 to 8+ glasses"
+        ]
+      },
+      "recommendations_count": {
+        "critical": 1,
+        "high": 3,
+        "medium": 4,
+        "low": 2
+      },
+      "blood_tests_recommended": [
+        "CBC",
+        "Fasting Blood Sugar & HbA1c",
+        "Lipid Profile",
+        "Liver Function Test",
+        "Kidney Function Test",
+        "Thyroid Profile",
+        "Vitamin D & B12",
+        "Advanced Lipid Panel + hs-CRP"
+      ],
+      "ayurvedic_dosha": "pitta",
+      "is_printed": false,
+      "is_shared": false
+    },
+    {
+      "id": "RPT002",
+      "user_id": "USR002",
+      "record_id": "REC002",
+      "generated_at": "2026-04-20T09:05:00Z",
+      "summary": {
+        "health_score": 78,
+        "bmi": 22.7,
+        "bmi_category": "Normal Weight",
+        "risk_level": "low",
+        "top_priorities": [
+          "Get blood tests done",
+          "Continue thyroid medication",
+          "Fix Vitamin D deficiency with sunlight + supplements",
+          "Maintain current healthy weight"
+        ]
+      },
+      "recommendations_count": {
+        "critical": 1,
+        "high": 2,
+        "medium": 3,
+        "low": 3
+      },
+      "blood_tests_recommended": [
+        "CBC",
+        "Fasting Blood Sugar & HbA1c",
+        "Lipid Profile",
+        "Full Thyroid Panel",
+        "25-Hydroxy Vitamin D",
+        "Vitamin B12"
+      ],
+      "ayurvedic_dosha": "pitta",
+      "is_printed": true,
+      "is_shared": false
+    },
+    {
+      "id": "RPT003",
+      "user_id": "USR003",
+      "record_id": "REC003",
+      "generated_at": "2026-04-19T13:05:00Z",
+      "summary": {
+        "health_score": 35,
+        "bmi": 31.8,
+        "bmi_category": "Obese (Class I)",
+        "risk_level": "high",
+        "top_priorities": [
+          "Urgent: Visit doctor for comprehensive checkup",
+          "Quit smoking immediately",
+          "Lose 25.5 kg — structured weight loss plan needed",
+          "Reduce alcohol consumption",
+          "Fix sleep — only 5 hours is dangerously low"
+        ]
+      },
+      "recommendations_count": {
+        "critical": 5,
+        "high": 4,
+        "medium": 3,
+        "low": 1
+      },
+      "blood_tests_recommended": [
+        "CBC",
+        "Fasting Blood Sugar & HbA1c",
+        "HbA1c every 3 months",
+        "Fasting Insulin + Kidney microalbumin",
+        "Lipid Profile",
+        "Advanced Lipid Panel + Apolipoprotein B + hs-CRP",
+        "Electrolytes (Sodium, Potassium)",
+        "Liver Function Test",
+        "Kidney Function Test",
+        "Thyroid Profile",
+        "ECG & Blood Pressure monitoring",
+        "HbA1c every 6 months",
+        "Insulin Resistance Panel (HOMA-IR)",
+        "Chest X-Ray + Spirometry",
+        "GGT + MCV"
+      ],
+      "ayurvedic_dosha": "kapha",
+      "is_printed": false,
+      "is_shared": false
+    },
+    {
+      "id": "RPT004",
+      "user_id": "USR004",
+      "record_id": "REC004",
+      "generated_at": "2026-04-18T10:04:00Z",
+      "summary": {
+        "health_score": 71,
+        "bmi": 24.8,
+        "bmi_category": "Overweight",
+        "risk_level": "moderate",
+        "top_priorities": [
+          "Pregnancy: Consult OB-GYN before any diet/exercise changes",
+          "Address anemia — increase iron-rich foods",
+          "Fix Vitamin D deficiency",
+          "Continue balanced nutrition for pregnancy"
+        ]
+      },
+      "recommendations_count": {
+        "critical": 2,
+        "high": 2,
+        "medium": 3,
+        "low": 2
+      },
+      "blood_tests_recommended": [
+        "CBC",
+        "Fasting Blood Sugar & HbA1c",
+        "Lipid Profile",
+        "Thyroid Profile",
+        "Serum Iron, Ferritin, TIBC",
+        "25-Hydroxy Vitamin D",
+        "Vitamin B12"
+      ],
+      "ayurvedic_dosha": "kapha",
+      "is_printed": false,
+      "is_shared": false
+    },
+    {
+      "id": "RPT005",
+      "user_id": "USR005",
+      "record_id": "REC005",
+      "generated_at": "2026-04-17T16:04:00Z",
+      "summary": {
+        "health_score": 74,
+        "bmi": 19.1,
+        "bmi_category": "Normal Weight",
+        "risk_level": "low",
+        "top_priorities": [
+          "Get blood tests done",
+          "Gain 11.5 kg to reach ideal weight",
+          "Fix sleep — 6 hours is not enough",
+          "Fix Vitamin D deficiency"
+        ]
+      },
+      "recommendations_count": {
+        "critical": 1,
+        "high": 2,
+        "medium": 4,
+        "low": 2
+      },
+      "blood_tests_recommended": [
+        "CBC",
+        "Fasting Blood Sugar & HbA1c",
+        "Lipid Profile",
+        "Liver Function Test",
+        "Kidney Function Test",
+        "Thyroid Profile",
+        "25-Hydroxy Vitamin D",
+        "Vitamin B12",
+        "Serum Albumin, Iron studies, Folate"
+      ],
+      "ayurvedic_dosha": "vata",
+      "is_printed": false,
+      "is_shared": true
+    }
+  ]
+}

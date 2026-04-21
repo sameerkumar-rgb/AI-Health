@@ -1,0 +1,239 @@
+{
+  "health_records": [
+    {
+      "id": "REC001",
+      "user_id": "USR001",
+      "created_at": "2026-04-21T14:30:00Z",
+      "personal_info": {
+        "name": "Sameer Kumar",
+        "age": 28,
+        "gender": "male",
+        "email": "sameer@example.com",
+        "pregnancy": "none",
+        "ethnicity": "asian"
+      },
+      "body_metrics": {
+        "height_cm": 175,
+        "weight_kg": 78,
+        "waist_cm": 88,
+        "blood_group": "B+",
+        "bmi": 25.5,
+        "bmi_category": "Overweight",
+        "ideal_weight_kg": 68.9
+      },
+      "medical_history": {
+        "conditions": ["cholesterol", "back_pain"],
+        "medications": "Atorvastatin 10mg",
+        "allergies": "Peanuts"
+      },
+      "lifestyle": {
+        "activity_level": "light",
+        "sleep_hours": 6.5,
+        "water_glasses": 5,
+        "diet_type": "nonveg",
+        "smoking": "no",
+        "alcohol": "occasionally",
+        "goals": ["lose_weight", "improve_stamina", "eat_healthier"]
+      },
+      "results": {
+        "health_score": 62,
+        "bmr": 1735,
+        "tdee": 2386,
+        "dosha": {
+          "vata": 25,
+          "pitta": 40,
+          "kapha": 35,
+          "dominant": "pitta"
+        }
+      }
+    },
+    {
+      "id": "REC002",
+      "user_id": "USR002",
+      "created_at": "2026-04-20T09:00:00Z",
+      "personal_info": {
+        "name": "Priya Sharma",
+        "age": 32,
+        "gender": "female",
+        "email": "priya.sharma@example.com",
+        "pregnancy": "none",
+        "ethnicity": "asian"
+      },
+      "body_metrics": {
+        "height_cm": 160,
+        "weight_kg": 58,
+        "waist_cm": 72,
+        "blood_group": "O+",
+        "bmi": 22.7,
+        "bmi_category": "Normal Weight",
+        "ideal_weight_kg": 54.1
+      },
+      "medical_history": {
+        "conditions": ["thyroid", "vitamin_d_deficiency"],
+        "medications": "Thyronorm 50mcg, Vitamin D3 60000IU weekly",
+        "allergies": "Lactose"
+      },
+      "lifestyle": {
+        "activity_level": "moderate",
+        "sleep_hours": 7.5,
+        "water_glasses": 8,
+        "diet_type": "veg",
+        "smoking": "no",
+        "alcohol": "no",
+        "goals": ["boost_immunity", "better_sleep", "reduce_stress"]
+      },
+      "results": {
+        "health_score": 78,
+        "bmr": 1297,
+        "tdee": 2010,
+        "dosha": {
+          "vata": 30,
+          "pitta": 45,
+          "kapha": 25,
+          "dominant": "pitta"
+        }
+      }
+    },
+    {
+      "id": "REC003",
+      "user_id": "USR003",
+      "created_at": "2026-04-19T13:00:00Z",
+      "personal_info": {
+        "name": "Rahul Verma",
+        "age": 45,
+        "gender": "male",
+        "email": "rahul.verma@example.com",
+        "pregnancy": "none",
+        "ethnicity": "asian"
+      },
+      "body_metrics": {
+        "height_cm": 170,
+        "weight_kg": 92,
+        "waist_cm": 102,
+        "blood_group": "A+",
+        "bmi": 31.8,
+        "bmi_category": "Obese (Class I)",
+        "ideal_weight_kg": 66.5
+      },
+      "medical_history": {
+        "conditions": ["diabetes", "hypertension", "cholesterol", "obesity"],
+        "medications": "Metformin 500mg, Amlodipine 5mg, Atorvastatin 20mg",
+        "allergies": ""
+      },
+      "lifestyle": {
+        "activity_level": "sedentary",
+        "sleep_hours": 5,
+        "water_glasses": 4,
+        "diet_type": "nonveg",
+        "smoking": "occasionally",
+        "alcohol": "moderate",
+        "goals": ["lose_weight", "manage_diabetes", "lower_bp", "quit_smoking"]
+      },
+      "results": {
+        "health_score": 35,
+        "bmr": 1822,
+        "tdee": 2186,
+        "dosha": {
+          "vata": 15,
+          "pitta": 30,
+          "kapha": 55,
+          "dominant": "kapha"
+        }
+      }
+    },
+    {
+      "id": "REC004",
+      "user_id": "USR004",
+      "created_at": "2026-04-18T10:00:00Z",
+      "personal_info": {
+        "name": "Anita Patel",
+        "age": 26,
+        "gender": "female",
+        "email": "anita.patel@example.com",
+        "pregnancy": "pregnant",
+        "ethnicity": "asian"
+      },
+      "body_metrics": {
+        "height_cm": 158,
+        "weight_kg": 62,
+        "waist_cm": null,
+        "blood_group": "AB+",
+        "bmi": 24.8,
+        "bmi_category": "Overweight",
+        "ideal_weight_kg": 52.6
+      },
+      "medical_history": {
+        "conditions": ["anemia", "vitamin_d_deficiency"],
+        "medications": "Iron supplements, Folic acid",
+        "allergies": "Gluten"
+      },
+      "lifestyle": {
+        "activity_level": "light",
+        "sleep_hours": 8,
+        "water_glasses": 7,
+        "diet_type": "veg",
+        "smoking": "no",
+        "alcohol": "no",
+        "goals": ["eat_healthier", "boost_immunity", "better_sleep"]
+      },
+      "results": {
+        "health_score": 71,
+        "bmr": 1332,
+        "tdee": 2131,
+        "dosha": {
+          "vata": 20,
+          "pitta": 35,
+          "kapha": 45,
+          "dominant": "kapha"
+        }
+      }
+    },
+    {
+      "id": "REC005",
+      "user_id": "USR005",
+      "created_at": "2026-04-17T16:00:00Z",
+      "personal_info": {
+        "name": "Vikram Singh",
+        "age": 22,
+        "gender": "male",
+        "email": "vikram.singh@example.com",
+        "pregnancy": "none",
+        "ethnicity": "asian"
+      },
+      "body_metrics": {
+        "height_cm": 180,
+        "weight_kg": 62,
+        "waist_cm": 72,
+        "blood_group": "O-",
+        "bmi": 19.1,
+        "bmi_category": "Normal Weight",
+        "ideal_weight_kg": 73.5
+      },
+      "medical_history": {
+        "conditions": ["vitamin_d_deficiency"],
+        "medications": "",
+        "allergies": ""
+      },
+      "lifestyle": {
+        "activity_level": "active",
+        "sleep_hours": 6,
+        "water_glasses": 10,
+        "diet_type": "nonveg",
+        "smoking": "no",
+        "alcohol": "occasionally",
+        "goals": ["gain_weight", "build_muscle", "improve_stamina"]
+      },
+      "results": {
+        "health_score": 74,
+        "bmr": 1670,
+        "tdee": 2881,
+        "dosha": {
+          "vata": 45,
+          "pitta": 35,
+          "kapha": 20,
+          "dominant": "vata"
+        }
+      }
+    }
+  ]
+}

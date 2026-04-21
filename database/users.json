@@ -1,0 +1,49 @@
+{
+  "users": [
+    {
+      "id": "USR001",
+      "name": "Sameer Kumar",
+      "email": "sameer@example.com",
+      "password_hash": "hashed_password_here",
+      "created_at": "2026-04-21T10:00:00Z",
+      "last_login": "2026-04-21T14:30:00Z",
+      "is_active": true
+    },
+    {
+      "id": "USR002",
+      "name": "Priya Sharma",
+      "email": "priya.sharma@example.com",
+      "password_hash": "hashed_password_here",
+      "created_at": "2026-04-20T08:15:00Z",
+      "last_login": "2026-04-21T09:00:00Z",
+      "is_active": true
+    },
+    {
+      "id": "USR003",
+      "name": "Rahul Verma",
+      "email": "rahul.verma@example.com",
+      "password_hash": "hashed_password_here",
+      "created_at": "2026-04-19T12:30:00Z",
+      "last_login": "2026-04-20T18:45:00Z",
+      "is_active": true
+    },
+    {
+      "id": "USR004",
+      "name": "Anita Patel",
+      "email": "anita.patel@example.com",
+      "password_hash": "hashed_password_here",
+      "created_at": "2026-04-18T09:00:00Z",
+      "last_login": "2026-04-21T11:20:00Z",
+      "is_active": true
+    },
+    {
+      "id": "USR005",
+      "name": "Vikram Singh",
+      "email": "vikram.singh@example.com",
+      "password_hash": "hashed_password_here",
+      "created_at": "2026-04-17T15:45:00Z",
+      "last_login": "2026-04-19T20:00:00Z",
+      "is_active": false
+    }
+  ]
+}
