@@ -3649,22 +3649,38 @@ async function handleRegister() {
             return;
         }
 
-        btn.disabled = false;
-        btn.textContent = 'Create Account';
-
-        // Handle email confirmation flow
+        // If email confirmation is required (no session), auto-login with credentials
         if (data.user && !data.session) {
-            showToast('success', 'Check Your Email', 'We sent a confirmation link to ' + escapeHTML(email) + '. Please verify to continue.', 8000);
-            showLogin();
+            btn.textContent = 'Signing you in...';
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (loginError) {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+                showToast('success', 'Account Created!', 'Please check your email to confirm, then sign in.', 8000);
+                showLogin();
+                return;
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+            currentUser = loginData.user;
+            completeAuth(name, email);
             return;
         }
 
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
         currentUser = data.user;
         completeAuth(name, email);
     } catch (err) {
+        console.error('Registration error:', err);
         btn.disabled = false;
         btn.textContent = 'Create Account';
-        showToast('error', 'Connection Error', 'Could not connect to the server. Please check your internet and try again.');
+        showToast('error', 'Something Went Wrong', 'Please check your internet connection and try again.');
     }
 }
 
@@ -3724,7 +3740,7 @@ async function handleLogin() {
     } catch (err) {
         btn.disabled = false;
         btn.textContent = 'Sign In';
-        showToast('error', 'Connection Error', 'Could not connect to the server. Please check your internet and try again.');
+        showToast('error', 'Something Went Wrong', 'Please check your internet connection and try again.');
     }
 }
 
