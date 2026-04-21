@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HealthAdvisor AI - Your Personal Health Consultant v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script>emailjs.init('AJxcT5jVaJmqw_3U5');</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://krxtifzukbuqwaevsccq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_poQvwASRPUkYqC8yGWgiIQ_cHa1R3yf';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1188,7 +1192,12 @@
                     <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email">
                     <div class="auth-error" id="regEmailError">Please enter a valid email</div>
                 </div>
-                <button class="auth-btn" onclick="handleRegister()">Create Account</button>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="Min 6 characters" autocomplete="new-password">
+                    <div class="auth-error" id="regPasswordError">Password must be at least 6 characters</div>
+                </div>
+                <button class="auth-btn" id="regBtn" onclick="handleRegister()">Create Account</button>
             </div>
             <div class="auth-switch">
                 Already have an account? <a onclick="showLogin()">Sign in</a>
@@ -1208,7 +1217,12 @@
                     <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
                     <div class="auth-error" id="loginEmailError">Please enter a valid email</div>
                 </div>
-                <button class="auth-btn" onclick="handleLogin()">Send Verification Code</button>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+                    <div class="auth-error" id="loginPasswordError">Please enter your password</div>
+                </div>
+                <button class="auth-btn" id="loginBtn" onclick="handleLogin()">Sign In</button>
             </div>
             <div class="auth-switch">
                 Don't have an account? <a onclick="showRegister()">Sign up</a>
@@ -1216,26 +1230,7 @@
         </div>
     </div>
 
-    <!-- OTP VERIFICATION SCREEN -->
-    <div class="auth-overlay hidden" id="authOTP">
-        <div class="auth-card">
-            <div class="auth-logo">&#128272;</div>
-            <h2>Verify Your Email</h2>
-            <p class="auth-subtitle">Enter the 4-digit code sent to <strong id="otpEmailDisplay"></strong></p>
-            <div class="otp-inputs" id="otpInputs">
-                <input type="text" maxlength="1" inputmode="numeric" oninput="otpNext(this, 0)" onkeydown="otpBack(event, 0)">
-                <input type="text" maxlength="1" inputmode="numeric" oninput="otpNext(this, 1)" onkeydown="otpBack(event, 1)">
-                <input type="text" maxlength="1" inputmode="numeric" oninput="otpNext(this, 2)" onkeydown="otpBack(event, 2)">
-                <input type="text" maxlength="1" inputmode="numeric" oninput="otpNext(this, 3)" onkeydown="otpBack(event, 3)">
-            </div>
-            <div class="otp-timer">Code expires in <span id="otpTimerText">01:30</span></div>
-            <button class="auth-btn" onclick="verifyOTP()">Verify & Continue</button>
-            <div style="margin-top:1rem;">
-                <button class="otp-resend" id="resendBtn" disabled onclick="resendOTP()">Resend Code</button>
-            </div>
-            <div class="auth-error" id="otpError" style="text-align:center;margin-top:0.5rem;">Invalid code. Please try again.</div>
-        </div>
-    </div>
+    <!-- OTP screen removed - using Supabase Auth -->
 
     <div class="toast-container" id="toastContainer"></div>
     <header style="position:relative;">
@@ -1697,9 +1692,24 @@ function generateResults() {
 
         const bmiPercent = Math.min(100, Math.max(0, ((bmi - 12) / 30) * 100));
 
+        const dosha = determineDosha(data, bmi);
         let html = buildResultsHTML(data, bmi, bmiCat, idealWeight, weightDiff, bmr, tdee, healthScore, bmiPercent);
 
         document.getElementById('section5').innerHTML = html;
+
+        // Save to Supabase
+        saveHealthRecord(data, bmi, bmiCat, idealWeight, bmr, tdee, healthScore, dosha).then(saved => {
+            if (saved) {
+                const priorities = ['Get blood tests done'];
+                if (weightDiff > 5) priorities.push('Lose ' + weightDiff.toFixed(1) + ' kg');
+                if (weightDiff < -5) priorities.push('Gain ' + Math.abs(weightDiff).toFixed(1) + ' kg');
+                if (data.smoking !== 'no') priorities.push('Quit smoking');
+                if (data.sleep < 7) priorities.push('Fix sleep - only ' + data.sleep + ' hrs');
+                if (data.water < 8) priorities.push('Increase water intake');
+                saveReport(saved.id, healthScore, bmi, bmiCat, priorities, [], dosha);
+                showToast('success', 'Saved to Cloud', 'Your health record has been saved to the database.', 3000);
+            }
+        });
         document.getElementById('sectionLoading').classList.remove('active');
         document.getElementById('section5').classList.add('active');
 
@@ -3565,39 +3575,8 @@ function agentInputKeydown(e) {
     if (e.key === 'Enter') sendAgentMsg();
 }
 
-/* ===== AUTH SYSTEM ===== */
-let authOTPCode = '';
-let otpTimer = null;
-let otpSeconds = 90;
-let pendingAuthEmail = '';
-let pendingAuthName = '';
-let isNewUser = false;
-
-function generateOTP() {
-    return String(Math.floor(1000 + Math.random() * 9000));
-}
-
-function getUsers() {
-    try { return JSON.parse(localStorage.getItem('ha_users') || '{}'); } catch { return {}; }
-}
-
-function saveUser(email, name) {
-    const users = getUsers();
-    users[email.toLowerCase()] = { name, email: email.toLowerCase(), createdAt: new Date().toISOString() };
-    localStorage.setItem('ha_users', JSON.stringify(users));
-}
-
-function setSession(email, name) {
-    localStorage.setItem('ha_session', JSON.stringify({ email: email.toLowerCase(), name, loggedInAt: new Date().toISOString() }));
-}
-
-function getSession() {
-    try { return JSON.parse(localStorage.getItem('ha_session')); } catch { return null; }
-}
-
-function clearSession() {
-    localStorage.removeItem('ha_session');
-}
+/* ===== SUPABASE AUTH & DATABASE ===== */
+let currentUser = null;
 
 function showRegister() {
     document.getElementById('authLogin').classList.add('hidden');
@@ -3611,18 +3590,6 @@ function showLogin() {
     document.getElementById('authLogin').classList.remove('hidden');
 }
 
-function showOTP(email) {
-    document.getElementById('authRegister').classList.add('hidden');
-    document.getElementById('authLogin').classList.add('hidden');
-    document.getElementById('authOTP').classList.remove('hidden');
-    document.getElementById('otpEmailDisplay').textContent = email;
-    document.getElementById('otpError').style.display = 'none';
-    const inputs = document.querySelectorAll('#otpInputs input');
-    inputs.forEach(inp => inp.value = '');
-    inputs[0].focus();
-    startOTPTimer();
-}
-
 function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -3632,11 +3599,13 @@ function clearErrors() {
     document.querySelectorAll('.auth-error').forEach(e => e.style.display = 'none');
 }
 
-function handleRegister() {
+async function handleRegister() {
     clearErrors();
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
     let valid = true;
+
     if (!name) {
         document.getElementById('regName').classList.add('error');
         document.getElementById('regNameError').style.display = 'block';
@@ -3647,149 +3616,234 @@ function handleRegister() {
         document.getElementById('regEmailError').style.display = 'block';
         valid = false;
     }
+    if (!password || password.length < 6) {
+        document.getElementById('regPassword').classList.add('error');
+        document.getElementById('regPasswordError').style.display = 'block';
+        valid = false;
+    }
     if (!valid) return;
-    const users = getUsers();
-    if (users[email.toLowerCase()]) {
-        document.getElementById('regEmailError').textContent = 'Account already exists. Please sign in.';
-        document.getElementById('regEmail').classList.add('error');
-        document.getElementById('regEmailError').style.display = 'block';
+
+    const btn = document.getElementById('regBtn');
+    btn.disabled = true;
+    btn.textContent = 'Creating Account...';
+
+    const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: { data: { name: name } }
+    });
+
+    if (error) {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        if (error.message.includes('already registered')) {
+            document.getElementById('regEmailError').textContent = 'Account already exists. Please sign in.';
+            document.getElementById('regEmail').classList.add('error');
+            document.getElementById('regEmailError').style.display = 'block';
+        } else {
+            showToast('error', 'Registration Failed', error.message);
+        }
         return;
     }
-    pendingAuthEmail = email;
-    pendingAuthName = name;
-    isNewUser = true;
-    saveUser(email, name);
-    setSession(email, name);
+
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+    currentUser = data.user;
     completeAuth(name, email);
 }
 
-function handleLogin() {
+async function handleLogin() {
     clearErrors();
     const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    let valid = true;
+
     if (!email || !validateEmail(email)) {
         document.getElementById('loginEmail').classList.add('error');
         document.getElementById('loginEmailError').style.display = 'block';
-        return;
+        valid = false;
     }
-    const users = getUsers();
-    if (!users[email.toLowerCase()]) {
-        document.getElementById('loginEmailError').textContent = 'No account found. Please sign up first.';
-        document.getElementById('loginEmail').classList.add('error');
-        document.getElementById('loginEmailError').style.display = 'block';
-        return;
+    if (!password) {
+        document.getElementById('loginPassword').classList.add('error');
+        document.getElementById('loginPasswordError').style.display = 'block';
+        valid = false;
     }
-    pendingAuthEmail = email;
-    pendingAuthName = users[email.toLowerCase()].name;
-    isNewUser = false;
-    setSession(email, pendingAuthName);
-    completeAuth(pendingAuthName, email);
-}
+    if (!valid) return;
 
-function otpNext(el, idx) {
-    el.value = el.value.replace(/[^0-9]/g, '');
-    if (el.value && idx < 3) {
-        document.querySelectorAll('#otpInputs input')[idx + 1].focus();
-    }
-}
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.textContent = 'Signing In...';
 
-function otpBack(e, idx) {
-    if (e.key === 'Backspace' && !e.target.value && idx > 0) {
-        document.querySelectorAll('#otpInputs input')[idx - 1].focus();
-    }
-}
-
-function startOTPTimer() {
-    otpSeconds = 90;
-    document.getElementById('resendBtn').disabled = true;
-    if (otpTimer) clearInterval(otpTimer);
-    otpTimer = setInterval(() => {
-        otpSeconds--;
-        const m = String(Math.floor(otpSeconds / 60)).padStart(2, '0');
-        const s = String(otpSeconds % 60).padStart(2, '0');
-        document.getElementById('otpTimerText').textContent = m + ':' + s;
-        if (otpSeconds <= 0) {
-            clearInterval(otpTimer);
-            document.getElementById('resendBtn').disabled = false;
-            document.getElementById('otpTimerText').textContent = '00:00';
-        }
-    }, 1000);
-}
-
-function sendOTPEmail(toEmail, toName, otp) {
-    showToast('info', 'Sending Code', 'Sending verification code to ' + escapeHTML(toEmail) + '...', 4000);
-    emailjs.send('service_w02p8y8', 'template_3ilczex', {
-        to_email: toEmail,
-        to_name: toName,
-        otp_code: otp
-    }).then(function() {
-        showToast('success', 'Code Sent!', 'Check your email for the 4-digit code.', 5000);
-    }).catch(function(err) {
-        console.error('EmailJS error:', err);
-        showToast('warning', 'Email Failed', 'Could not send email. Your code is: ' + otp, 10000);
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
     });
-}
 
-function resendOTP() {
-    authOTPCode = generateOTP();
-    sendOTPEmail(pendingAuthEmail, pendingAuthName, authOTPCode);
-    startOTPTimer();
-    const inputs = document.querySelectorAll('#otpInputs input');
-    inputs.forEach(inp => inp.value = '');
-    inputs[0].focus();
-}
-
-function verifyOTP() {
-    const inputs = document.querySelectorAll('#otpInputs input');
-    const entered = Array.from(inputs).map(i => i.value).join('');
-    if (entered.length < 4) {
-        document.getElementById('otpError').textContent = 'Please enter the complete 4-digit code.';
-        document.getElementById('otpError').style.display = 'block';
+    if (error) {
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+        if (error.message.includes('Invalid login')) {
+            document.getElementById('loginPasswordError').textContent = 'Invalid email or password.';
+            document.getElementById('loginPassword').classList.add('error');
+            document.getElementById('loginPasswordError').style.display = 'block';
+        } else {
+            showToast('error', 'Login Failed', error.message);
+        }
         return;
     }
-    if (entered !== authOTPCode) {
-        document.getElementById('otpError').textContent = 'Invalid code. Please try again.';
-        document.getElementById('otpError').style.display = 'block';
-        inputs.forEach(i => i.value = '');
-        inputs[0].focus();
-        return;
-    }
-    if (otpTimer) clearInterval(otpTimer);
-    if (isNewUser) {
-        saveUser(pendingAuthEmail, pendingAuthName);
-    }
-    setSession(pendingAuthEmail, pendingAuthName);
-    completeAuth(pendingAuthName, pendingAuthEmail);
+
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+    currentUser = data.user;
+    const userName = data.user.user_metadata?.name || email.split('@')[0];
+    completeAuth(userName, email);
+
+    // Update last login
+    await supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', data.user.id);
 }
 
 function completeAuth(name, email) {
     document.getElementById('authRegister').classList.add('hidden');
     document.getElementById('authLogin').classList.add('hidden');
     document.getElementById('authOTP').classList.add('hidden');
+
     // Pre-fill form fields
     const nameField = document.getElementById('name');
     const emailField = document.getElementById('email');
     if (nameField && !nameField.value) nameField.value = name;
     if (emailField && !emailField.value) emailField.value = email;
+
     // Show user bar
     const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('userAvatar').textContent = initials;
     document.getElementById('userBarName').textContent = name;
     document.getElementById('userBar').style.display = 'flex';
     showToast('success', 'Welcome!', 'Signed in as ' + escapeHTML(name), 4000);
+
+    // Load last health record if exists
+    loadLastRecord();
 }
 
-function handleLogout() {
-    clearSession();
+async function handleLogout() {
+    await supabase.auth.signOut();
+    currentUser = null;
     document.getElementById('userBar').style.display = 'none';
     document.getElementById('authRegister').classList.remove('hidden');
     showToast('info', 'Signed Out', 'You have been logged out successfully.', 3000);
 }
 
-// Check session on load
-(function checkAuth() {
-    const session = getSession();
-    if (session && session.email && session.name) {
-        completeAuth(session.name, session.email);
+// Save health record to Supabase
+async function saveHealthRecord(data, bmi, bmiCat, idealWeight, bmr, tdee, healthScore, dosha) {
+    if (!currentUser) return null;
+    const record = {
+        user_id: currentUser.id,
+        name: data.name, age: data.age, gender: data.gender,
+        pregnancy: data.pregnancy, ethnicity: data.ethnicity,
+        height_cm: data.height, weight_kg: data.weight,
+        waist_cm: data.waist, blood_group: data.bloodGroup,
+        bmi: parseFloat(bmi.toFixed(1)),
+        bmi_category: bmiCat.label,
+        ideal_weight_kg: parseFloat(idealWeight.toFixed(1)),
+        conditions: data.conditions, medications: data.medications,
+        allergies: data.allergies, activity_level: data.activity,
+        sleep_hours: data.sleep, water_glasses: data.water,
+        diet_type: data.diet, smoking: data.smoking,
+        alcohol: data.alcohol, goals: data.goals,
+        health_score: healthScore, bmr: Math.round(bmr),
+        tdee: Math.round(tdee),
+        dosha_vata: dosha ? dosha.vata : 0,
+        dosha_pitta: dosha ? dosha.pitta : 0,
+        dosha_kapha: dosha ? dosha.kapha : 0,
+        dosha_dominant: dosha ? dosha.dominant : ''
+    };
+    const { data: saved, error } = await supabase.from('health_records').insert(record).select().single();
+    if (error) {
+        console.error('Save record error:', error);
+        return null;
+    }
+    return saved;
+}
+
+// Save report summary to Supabase
+async function saveReport(recordId, healthScore, bmi, bmiCat, priorities, bloodTests, dosha) {
+    if (!currentUser || !recordId) return;
+    const risk = healthScore >= 75 ? 'low' : healthScore >= 50 ? 'moderate' : healthScore >= 30 ? 'high' : 'critical';
+    const report = {
+        user_id: currentUser.id,
+        record_id: recordId,
+        health_score: healthScore,
+        bmi: parseFloat(bmi.toFixed(1)),
+        bmi_category: bmiCat.label,
+        risk_level: risk,
+        top_priorities: priorities.slice(0, 5),
+        blood_tests: bloodTests.slice(0, 15),
+        dosha: dosha ? dosha.dominant : ''
+    };
+    const { error } = await supabase.from('reports').insert(report);
+    if (error) console.error('Save report error:', error);
+}
+
+// Load last health record
+async function loadLastRecord() {
+    if (!currentUser) return;
+    const { data, error } = await supabase
+        .from('health_records')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (error || !data) return;
+
+    // Pre-fill form with last record
+    const fields = {
+        name: data.name, age: data.age, gender: data.gender,
+        height: data.height_cm, weight: data.weight_kg,
+        waist: data.waist_cm, bloodGroup: data.blood_group,
+        activity: data.activity_level, sleep: data.sleep_hours,
+        water: data.water_glasses, diet: data.diet_type,
+        smoking: data.smoking, alcohol: data.alcohol,
+        email: currentUser.email
+    };
+    Object.keys(fields).forEach(key => {
+        const el = document.getElementById(key);
+        if (el && fields[key] != null) el.value = fields[key];
+    });
+
+    // Restore checkboxes
+    if (data.conditions) {
+        data.conditions.forEach(c => {
+            const cb = document.querySelector(`.checkbox-grid input[value="${c}"]`);
+            if (cb) cb.checked = true;
+        });
+    }
+    if (data.goals) {
+        data.goals.forEach(g => {
+            const cb = document.querySelector(`input[name="goals"][value="${g}"]`);
+            if (cb) cb.checked = true;
+        });
+    }
+
+    // Handle pregnancy visibility
+    if (data.gender === 'female') {
+        document.getElementById('pregnancyGroup').style.display = 'flex';
+        if (data.pregnancy) document.getElementById('pregnancy').value = data.pregnancy;
+    }
+
+    // Handle ethnicity
+    if (data.ethnicity) document.getElementById('ethnicity').value = data.ethnicity;
+
+    showToast('info', 'Data Loaded', 'Your last health record has been restored.', 3000);
+}
+
+// Check auth on page load
+(async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session && session.user) {
+        currentUser = session.user;
+        const userName = session.user.user_metadata?.name || session.user.email.split('@')[0];
+        completeAuth(userName, session.user.email);
     }
 })();
 </script>
