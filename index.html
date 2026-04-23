@@ -3693,9 +3693,33 @@ async function handleRegister() {
             return;
         }
 
-        // If email confirmation is required (no session), auto-login with credentials
+        // Detect fake signup — Supabase returns empty identities for already-registered emails
+        // (instead of an error, to prevent email enumeration)
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+            document.getElementById('regEmailError').textContent = 'An account with this email may already exist. Try signing in.';
+            document.getElementById('regEmail').classList.add('error');
+            document.getElementById('regEmailError').style.display = 'block';
+            return;
+        }
+
+        // If we got a session directly, registration is complete
+        if (data.session) {
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+            currentUser = data.user;
+            completeAuth(name, email);
+            return;
+        }
+
+        // No session — email confirmation may be required. Try auto-login.
         if (data.user && !data.session) {
             btn.textContent = 'Signing you in...';
+
+            // Small delay to let Supabase propagate the new user
+            await new Promise(r => setTimeout(r, 1000));
+
             const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: password
@@ -3704,8 +3728,16 @@ async function handleRegister() {
             if (loginError) {
                 btn.disabled = false;
                 btn.textContent = 'Create Account';
-                showToast('success', 'Account Created!', 'Please check your email to confirm, then sign in.', 8000);
+                if (loginError.message.includes('Email not confirmed')) {
+                    showToast('warning', 'Email Confirmation Required',
+                        'Your account was created but requires email verification. Check your inbox (and spam folder) for a confirmation link from Supabase, then sign in.', 10000);
+                } else {
+                    showToast('success', 'Account Created!',
+                        'Please check your email to confirm your account, then sign in.', 8000);
+                }
                 showLogin();
+                // Pre-fill login email for convenience
+                document.getElementById('loginEmail').value = email;
                 return;
             }
 
