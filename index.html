@@ -1546,6 +1546,9 @@ function goToStep(step) {
     if (step === 4) {
         // No strict validation for medical history
     }
+    if (step === 5 && !document.getElementById('section5').innerHTML.trim()) {
+        showToast('warning', 'No Report Yet', 'Please complete the form and generate your health report first.'); return;
+    }
 
     // Update sections
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -1555,6 +1558,7 @@ function goToStep(step) {
     // Update steps
     for (let i = 1; i <= 5; i++) {
         const el = document.getElementById('step' + i);
+        if (!el) continue;
         el.classList.remove('active', 'done');
         if (i < step) el.classList.add('done');
         else if (i === step) el.classList.add('active');
@@ -1595,8 +1599,8 @@ function getFormData() {
         medications: document.getElementById('medications').value.trim(),
         allergies: document.getElementById('allergies').value.trim(),
         activity: document.getElementById('activity').value,
-        sleep: parseFloat(document.getElementById('sleep').value) || 7,
-        water: parseInt(document.getElementById('water').value) || 6,
+        sleep: document.getElementById('sleep').value !== '' ? parseFloat(document.getElementById('sleep').value) : 7,
+        water: document.getElementById('water').value !== '' ? parseInt(document.getElementById('water').value) : 6,
         diet: document.getElementById('diet').value,
         smoking: document.getElementById('smoking').value,
         alcohol: document.getElementById('alcohol').value,
@@ -1605,6 +1609,7 @@ function getFormData() {
 }
 
 function calculateBMI(weight, heightCm) {
+    if (!heightCm || heightCm <= 0) return 0;
     const heightM = heightCm / 100;
     return weight / (heightM * heightM);
 }
@@ -1631,18 +1636,41 @@ function getIdealWeight(heightCm, gender) {
     const heightIn = heightCm / 2.54;
     const over60 = Math.max(0, heightIn - 60);
     if (gender === 'female') return 45.5 + (2.3 * over60);
+    if (gender === 'other') return (47.75 + (2.3 * over60)); // average of male & female base
     return 50 + (2.3 * over60);
 }
 
 function calculateBMR(weight, heightCm, age, gender) {
     // Mifflin-St Jeor
     if (gender === 'female') return 10 * weight + 6.25 * heightCm - 5 * age - 161;
+    if (gender === 'other') return 10 * weight + 6.25 * heightCm - 5 * age - 78; // average of male(+5) & female(-161)
     return 10 * weight + 6.25 * heightCm - 5 * age + 5;
 }
 
 function getTDEE(bmr, activity) {
     const factors = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, athlete: 1.9 };
     return bmr * (factors[activity] || 1.2);
+}
+
+function getRecommendedBloodTests(data, bmi) {
+    const tests = [];
+    tests.push('CBC', 'Fasting Blood Sugar & HbA1c', 'Lipid Profile', 'LFT', 'KFT', 'Thyroid Profile', 'Vitamin D & B12');
+    if (data.age >= 30) tests.push('ECG & BP monitoring');
+    if (data.age >= 40) tests.push('HbA1c every 6 months');
+    if (data.age >= 45) tests.push('PSA/Mammogram');
+    if (data.age >= 50) tests.push('Bone Density DEXA scan');
+    if (data.conditions.includes('diabetes')) tests.push('HbA1c 3-monthly, Fasting Insulin, Kidney microalbumin');
+    if (data.conditions.includes('hypertension')) tests.push('Electrolytes, Renal panel');
+    if (data.conditions.includes('heart_disease')) tests.push('Troponin, BNP, Echo, Stress test');
+    if (data.conditions.includes('thyroid')) tests.push('Full Thyroid Panel with Anti-TPO');
+    if (data.conditions.includes('pcos')) tests.push('LH, FSH, Testosterone, DHEAS, Insulin');
+    if (data.conditions.includes('anemia')) tests.push('Serum Iron, Ferritin, TIBC');
+    if (data.conditions.includes('cholesterol')) tests.push('Advanced Lipid Panel, hs-CRP');
+    if (bmi >= 30) tests.push('HOMA-IR');
+    if (bmi < 18.5) tests.push('Serum Albumin, Iron studies, B12, Folate');
+    if (data.smoking !== 'no') tests.push('Chest X-Ray, Spirometry');
+    if (data.alcohol === 'heavy') tests.push('GGT, MCV');
+    return tests.slice(0, 15);
 }
 
 function generateResults() {
@@ -1681,9 +1709,12 @@ function generateResults() {
         else if (bmi >= 25 && bmi < 30) healthScore -= 5;
         else healthScore -= 15;
         if (data.activity === 'moderate' || data.activity === 'active' || data.activity === 'athlete') healthScore += 8;
-        if (data.activity === 'sedentary') healthScore -= 10;
+        else if (data.activity === 'light') healthScore += 3;
+        else if (data.activity === 'sedentary') healthScore -= 10;
         if (data.sleep >= 7 && data.sleep <= 9) healthScore += 5;
-        else healthScore -= 5;
+        else if (data.sleep >= 6) healthScore -= 2;
+        else if (data.sleep >= 5) healthScore -= 5;
+        else healthScore -= 12;
         if (data.water >= 8) healthScore += 3;
         if (data.smoking !== 'no') healthScore -= 15;
         if (data.alcohol === 'heavy') healthScore -= 10;
@@ -1693,6 +1724,7 @@ function generateResults() {
         const bmiPercent = Math.min(100, Math.max(0, ((bmi - 12) / 30) * 100));
 
         const dosha = determineDosha(data, bmi);
+        const bloodTestNames = getRecommendedBloodTests(data, bmi);
         let html = buildResultsHTML(data, bmi, bmiCat, idealWeight, weightDiff, bmr, tdee, healthScore, bmiPercent);
 
         document.getElementById('section5').innerHTML = html;
@@ -1706,7 +1738,7 @@ function generateResults() {
                 if (data.smoking !== 'no') priorities.push('Quit smoking');
                 if (data.sleep < 7) priorities.push('Fix sleep - only ' + data.sleep + ' hrs');
                 if (data.water < 8) priorities.push('Increase water intake');
-                saveReport(saved.id, healthScore, bmi, bmiCat, priorities, [], dosha);
+                saveReport(saved.id, healthScore, bmi, bmiCat, priorities, bloodTestNames, dosha);
                 showToast('success', 'Saved to Cloud', 'Your health record has been saved to the database.', 3000);
             }
         });
@@ -1714,8 +1746,10 @@ function generateResults() {
         document.getElementById('section5').classList.add('active');
 
         for (let i = 1; i <= 4; i++) {
-            document.getElementById('step' + i).classList.remove('active');
-            document.getElementById('step' + i).classList.add('done');
+            const el = document.getElementById('step' + i);
+            if (!el) continue;
+            el.classList.remove('active');
+            el.classList.add('done');
         }
         document.getElementById('step5').classList.add('active');
 
@@ -1934,14 +1968,6 @@ function buildResultsHTML(data, bmi, bmiCat, idealWeight, weightDiff, bmr, tdee,
             </div>
         </div>`;
     }
-    html += `<div class="card">
-        <div class="card-title">&#129302; AI Health Recommendations</div>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin:-1rem 0 1rem;">
-            &#128073; Click any card to see the full action plan. Cards are numbered by priority — <strong>start from #1</strong>.
-        </p>
-        <div class="rec-grid">`;
-
-    // AI Recommendations — Interactive Priority Grid
     html += `<div class="card">
         <div class="card-title">&#129302; AI Health Recommendations</div>
         <p style="color:var(--text-muted);font-size:0.85rem;margin:-1rem 0 1rem;">
@@ -2280,9 +2306,19 @@ function buildMealPlanContent(data, tdee, weightDiff) {
 
     const isVeg = data.diet === 'veg' || data.diet === 'vegan';
     const isVegan = data.diet === 'vegan';
+    const isKeto = data.diet === 'keto';
     let breakfast, midMorning, lunch, snack, dinner;
 
-    if (isVegan) {
+    if (isKeto) {
+        breakfast = 'Scrambled eggs with avocado & cheese / Bulletproof coffee';
+        midMorning = 'Handful of almonds & walnuts / Cheese cubes';
+        lunch = 'Grilled chicken/paneer with leafy greens & olive oil dressing';
+        snack = 'Boiled eggs / Cucumber with cream cheese';
+        dinner = 'Salmon/paneer tikka with cauliflower rice & sauteed spinach';
+        proteinG = Math.round(data.weight * 1.5);
+        fatG = Math.round((cals * 0.70) / 9);
+        carbG = Math.round((cals * 0.05) / 4);
+    } else if (isVegan) {
         breakfast = 'Oatmeal with almond milk, chia seeds, banana & nuts';
         midMorning = 'Mixed fruit smoothie with soy protein';
         lunch = 'Quinoa bowl with chickpeas, veggies & tahini dressing';
@@ -2318,17 +2354,24 @@ function buildMealPlanContent(data, tdee, weightDiff) {
         const allergyKeywords = data.allergies.split(',').map(a => a.trim().toLowerCase()).filter(a => a);
         const substitutionMap = {
             dairy: 'Use almond/soy milk, tofu instead of paneer/curd',
+            milk: 'Use almond/soy milk, tofu instead of paneer/curd',
+            lactose: 'Use lactose-free dairy or plant milk',
             gluten: 'Use rice/millets instead of wheat/roti',
+            wheat: 'Use rice/millets instead of wheat/roti',
             nuts: 'Replace nuts with seeds (pumpkin, sunflower)',
+            peanut: 'Replace peanuts and peanut butter with seeds or sunflower seed butter',
             eggs: 'Replace eggs with tofu scramble or paneer bhurji',
+            egg: 'Replace eggs with tofu scramble or paneer bhurji',
             seafood: 'Replace fish with paneer/tofu/legumes',
-            soy: 'Replace tofu/soy with paneer/legumes',
-            lactose: 'Use lactose-free dairy or plant milk'
+            fish: 'Replace fish with paneer/tofu/legumes',
+            soy: 'Replace tofu/soy with paneer/legumes'
         };
         const matchedSubs = [];
+        const seenSubs = new Set();
         allergyKeywords.forEach(allergy => {
             Object.keys(substitutionMap).forEach(key => {
-                if (allergy.includes(key) || key.includes(allergy)) {
+                if ((allergy === key || allergy.includes(key)) && !seenSubs.has(key)) {
+                    seenSubs.add(key);
                     matchedSubs.push(substitutionMap[key]);
                 }
             });
@@ -2644,10 +2687,13 @@ function determineDosha(data, bmi) {
     if (data.conditions.includes('obesity') || data.conditions.includes('cholesterol') || data.conditions.includes('diabetes')) kapha += 1;
 
     const total = vata + pitta + kapha;
+    let vPct = Math.round((vata / total) * 100);
+    let pPct = Math.round((pitta / total) * 100);
+    let kPct = 100 - vPct - pPct;
     return {
-        vata: Math.round((vata / total) * 100),
-        pitta: Math.round((pitta / total) * 100),
-        kapha: Math.round((kapha / total) * 100),
+        vata: vPct,
+        pitta: pPct,
+        kapha: kPct,
         dominant: vata >= pitta && vata >= kapha ? 'vata' : pitta >= kapha ? 'pitta' : 'kapha'
     };
 }
@@ -3210,8 +3256,8 @@ function getUserData() {
         const tdee = Math.round(bmr * (mult[activity] || 1.2));
 
         return { name, age, gender, height, weight, bmi, idealW, bmr, tdee, activity,
-            sleep: parseFloat(document.getElementById('sleep').value) || 7,
-            water: parseInt(document.getElementById('water').value) || 6,
+            sleep: document.getElementById('sleep').value !== '' ? parseFloat(document.getElementById('sleep').value) : 7,
+            water: document.getElementById('water').value !== '' ? parseInt(document.getElementById('water').value) : 6,
             diet: document.getElementById('diet').value || 'nonveg',
             smoking: document.getElementById('smoking').value || 'no',
             alcohol: document.getElementById('alcohol').value || 'no',
@@ -3324,7 +3370,7 @@ function agentReply(query) {
     }
 
     // Sleep
-    if (/sleep|insomnia|rest|tired|fatigue|energy/.test(q)) {
+    if (/sleep|insomnia|\brest\b|tired|fatigue|\benergy\b/.test(q)) {
         return { text: `&#128164; <strong>Sleep Analysis:</strong> You get <strong>${d.sleep} hours</strong>/night.<br><br>
             ${d.sleep < 7 ? `&#9888; That's below the recommended 7-9 hours. Effects: weight gain, weak immunity, poor focus.<br><br>
             <strong>Fix your sleep:</strong><br>
@@ -3341,7 +3387,7 @@ function agentReply(query) {
     }
 
     // Water
-    if (/water|hydrat|drink|dehydrat/.test(q)) {
+    if (/water|hydrat|\bdrink\b|dehydrat/.test(q)) {
         const target = Math.round(d.weight * 0.033 * 1000);
         return { text: `&#128167; <strong>Hydration:</strong> You drink <strong>${d.water} glasses/day</strong>.<br><br>
             Your ideal intake: <strong>${(target / 1000).toFixed(1)} liters</strong> (~${Math.round(target / 250)} glasses)<br><br>
@@ -3387,7 +3433,7 @@ function agentReply(query) {
             &#8226; Thyroid (TSH, T3, T4)<br>
             &#8226; Vitamin D & B12<br>`;
         if (d.age >= 40) tests += `<br><strong>Age 40+ extras:</strong><br>&#8226; ECG + Stress Test<br>&#8226; HbA1c every 6 months<br>`;
-        if (d.conditions.length > 0) tests += `<br><strong>For your conditions (${d.conditions.join(', ')}):</strong><br>&#8226; Ask your doctor for condition-specific panels<br>`;
+        if (d.conditions.length > 0) tests += `<br><strong>For your conditions (${escapeHTML(d.conditions.join(', '))}):</strong><br>&#8226; Ask your doctor for condition-specific panels<br>`;
         tests += `<br>&#128197; <strong>Frequency:</strong> Full checkup once a year. With chronic conditions, every 3-6 months.`;
         return { text: tests, quick: ['What is HbA1c?', 'Normal sugar levels', 'Cholesterol ranges'] };
     }
@@ -3555,7 +3601,7 @@ function sendAgentMsg(text) {
     if (!msg) return;
     input.value = '';
 
-    addMsg(msg, true);
+    addMsg(escapeHTML(msg), true);
 
     // Remove any existing quick replies
     document.querySelectorAll('.quick-replies').forEach(el => el.remove());
@@ -3580,13 +3626,11 @@ let currentUser = null;
 
 function showRegister() {
     document.getElementById('authLogin').classList.add('hidden');
-    document.getElementById('authOTP').classList.add('hidden');
     document.getElementById('authRegister').classList.remove('hidden');
 }
 
 function showLogin() {
     document.getElementById('authRegister').classList.add('hidden');
-    document.getElementById('authOTP').classList.add('hidden');
     document.getElementById('authLogin').classList.remove('hidden');
 }
 
@@ -3736,7 +3780,7 @@ async function handleLogin() {
         completeAuth(userName, email);
 
         // Update last login (non-blocking)
-        supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', data.user.id);
+        supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', data.user.id).then(({ error }) => { if (error) console.warn('Profile update failed:', error.message); });
     } catch (err) {
         btn.disabled = false;
         btn.textContent = 'Sign In';
@@ -3747,7 +3791,6 @@ async function handleLogin() {
 function completeAuth(name, email) {
     document.getElementById('authRegister').classList.add('hidden');
     document.getElementById('authLogin').classList.add('hidden');
-    document.getElementById('authOTP').classList.add('hidden');
 
     // Pre-fill form fields
     const nameField = document.getElementById('name');
@@ -3756,7 +3799,7 @@ function completeAuth(name, email) {
     if (emailField && !emailField.value) emailField.value = email;
 
     // Show user bar
-    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const initials = name.split(' ').filter(w => w).map(w => w[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('userAvatar').textContent = initials;
     document.getElementById('userBarName').textContent = name;
     document.getElementById('userBar').style.display = 'flex';
@@ -3834,7 +3877,7 @@ async function loadLastRecord() {
         .eq('user_id', currentUser.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
     if (error || !data) return;
 
@@ -3856,13 +3899,15 @@ async function loadLastRecord() {
     // Restore checkboxes
     if (data.conditions) {
         data.conditions.forEach(c => {
-            const cb = document.querySelector(`.checkbox-grid input[value="${c}"]`);
+            const safeVal = CSS.escape(c);
+            const cb = document.querySelector(`.checkbox-grid input[value="${safeVal}"]`);
             if (cb) cb.checked = true;
         });
     }
     if (data.goals) {
         data.goals.forEach(g => {
-            const cb = document.querySelector(`input[name="goals"][value="${g}"]`);
+            const safeVal = CSS.escape(g);
+            const cb = document.querySelector(`input[name="goals"][value="${safeVal}"]`);
             if (cb) cb.checked = true;
         });
     }
